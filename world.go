@@ -1,23 +1,28 @@
 package wo
 
 import (
+	"image/color"
+	"time"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/image/colornames"
-	"image/color"
-	"time"
 )
 
 const (
 	defaultFps = 60
 )
 
+// Run runs a world loop in the OpenGL context using pixel.
 func Run(run func()) {
 	pixelgl.Run(run)
 }
 
+// World is a container of Scenes that are rendered onto
+// a window. It is used as the highest level entry point
+// into the graphical programming of an application.
 type World struct {
 	window *pixelgl.Window
 	canvas *pixelgl.Canvas
@@ -30,6 +35,10 @@ type World struct {
 	scenes map[string]SceneFactory
 }
 
+// NewWorld creates a world with a displayed window.
+// Use RunScene(name) to begin rendering a Scene.
+//
+// SceneFactories are used to load Scenes by name.
 func NewWorld(title string, width, height int, scenes map[string]SceneFactory) (*World, error) {
 
 	w := float64(width)
@@ -60,6 +69,22 @@ func NewWorld(title string, width, height int, scenes map[string]SceneFactory) (
 	return world, nil
 }
 
+// RunScene renders a Scene until that Scene returns
+// a SceneResult other than SceneResultNone.
+func (w *World) RunScene(name string) (SceneResult, error) {
+	scene, err := w.createScene(name)
+	if err != nil {
+		return SceneResultError, errors.Errorf("unable to create scene %s: %v", name, err)
+	}
+	return w.runToCompletion(scene), nil
+}
+
+// SetFps sets the target frames per second to render scenes.
+func (w *World) SetFps(maxFps float64) {
+	w.fps.SetLimit(maxFps)
+}
+
+// createScene loads a Scene by name using its respective SceneFactory.
 func (w *World) createScene(name string) (Scene, error) {
 	logrus.WithFields(logrus.Fields{
 		"name": name,
@@ -81,19 +106,9 @@ func (w *World) createScene(name string) (Scene, error) {
 	return scene, err
 }
 
-func (w *World) SetFps(maxFps float64) {
-	w.fps.SetLimit(maxFps)
-}
-
-func (w *World) RunScene(name string) (SceneResult, error) {
-	scene, err := w.createScene(name)
-	if err != nil {
-		return SceneResultError, errors.Errorf("unable to create scene %s: %v", name, err)
-	}
-	return w.completeScene(scene), nil
-}
-
-func (w *World) completeScene(scene Scene) SceneResult {
+// runToCompletion runs the update/draw cycle on a Scene until
+// that Scene returns a result other than SceneResultNone.
+func (w *World) runToCompletion(scene Scene) SceneResult {
 	w.fps.Reset()
 	for !w.window.Closed() {
 		dt := w.fps.StartFrame()
@@ -114,6 +129,7 @@ func (w *World) completeScene(scene Scene) SceneResult {
 	return SceneResultWindowClosed
 }
 
+// drawToWindow renders the canvas onto the window.
 func (w *World) drawToWindow() {
 	w.canvas.Draw(w.window, w.fit)
 	w.window.Update()

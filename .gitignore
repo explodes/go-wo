@@ -1,3 +1,5 @@
+examples/*/res/res.go
 examples/flappy/flappy
 examples/guns/guns
-examples/*/res/res.go
+examples/soccer/soccer
+examples/objects/objects

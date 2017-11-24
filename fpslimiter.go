@@ -7,7 +7,12 @@ import (
 // FpsLimiter is a tool used to limit the number of frames
 // drawn or executed to a given fps (frames per second).
 type FpsLimiter struct {
-	wait       time.Duration
+	// wait is duration to wait each frame to keep a
+	// consistent FPS
+	wait time.Duration
+
+	// frameStart marks the time a frame was started
+	// with StartFrame()
 	frameStart time.Time
 }
 

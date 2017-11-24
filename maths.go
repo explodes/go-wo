@@ -1,8 +1,9 @@
 package wo
 
 import (
-	"github.com/faiface/pixel"
 	"math"
+
+	"github.com/faiface/pixel"
 )
 
 // Limits returns the limits of a rectangle
@@ -20,13 +21,13 @@ func NegV(v pixel.Vec) pixel.Vec {
 	return pixel.V(-v.X, -v.Y)
 }
 
-// fit returns the Matrix that will transform a source Rect
+// Fit returns the Matrix that will transform a source Rect
 // into the dest Rect
-func fit(source, dest pixel.Rect) pixel.Matrix {
+func Fit(source, dest pixel.Rect) pixel.Matrix {
 	xscale := dest.W() / source.W()
 	yscale := dest.H() / source.H()
-	scaleV := pixel.V(xscale, yscale)
-	return pixel.IM.Moved(NegV(source.Min)).ScaledXY(pixel.ZV, scaleV).Moved(dest.Min)
+	scale := pixel.V(xscale, yscale)
+	return pixel.IM.Moved(NegV(source.Min)).ScaledXY(pixel.ZV, scale).Moved(dest.Min)
 }
 
 // FitAtZero returns the Matrix that will transform a source Rect
@@ -34,7 +35,7 @@ func fit(source, dest pixel.Rect) pixel.Matrix {
 // to the right by 50% of the source size which transforms
 // the source origin from the center to the bottom left.
 func FitAtZero(source, dest pixel.Rect) pixel.Matrix {
-	return fit(source, dest).Moved(dest.Center())
+	return Fit(source, dest).Moved(dest.Center())
 }
 
 // HitBox returns the hit box of an object based on its sprite and current position

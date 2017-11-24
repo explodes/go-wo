@@ -2,6 +2,7 @@ package wo
 
 import (
 	"testing"
+
 	"github.com/cocoonlife/testify/assert"
 	"github.com/faiface/pixel"
 )

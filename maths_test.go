@@ -1,10 +1,11 @@
 package wo
 
 import (
-	"github.com/faiface/pixel"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	"github.com/faiface/pixel"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLimits(t *testing.T) {
@@ -56,7 +57,7 @@ func TestFit(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			as := assert.New(t)
 
-			mat := fit(c.src, c.dest)
+			mat := Fit(c.src, c.dest)
 
 			projectBottomLeft := mat.Project(c.src.Min)
 			projectTopRight := mat.Project(c.src.Max)
