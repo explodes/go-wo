@@ -1,0 +1,3 @@
+examples/flappy/flappy
+examples/guns/guns
+examples/*/res/res.go
