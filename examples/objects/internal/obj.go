@@ -2,7 +2,6 @@ package internal
 
 import (
 	"github.com/explodes/go-wo"
-	"github.com/faiface/pixel"
 
 	"github.com/faiface/pixel/pixelgl"
 )
@@ -16,17 +15,12 @@ type Obj struct {
 }
 
 func newObj(loader wo.Loader) (*Obj, error) {
-	sprite, err := loader.Sprite("img/ship_512.png")
+	o, err := wo.NewObject(loader, "img/ship_512.png", 200, 200, 24, 24)
 	if err != nil {
 		return nil, err
 	}
 	obj := &Obj{
-		Object: &wo.Object{
-			Sprite: sprite,
-			Pos:    pixel.V(400, 50),
-			Rot:    wo.DegToRad(45),
-			Size:   pixel.V(24, 24),
-		},
+		Object: o,
 	}
 	return obj, nil
 }
@@ -47,8 +41,4 @@ func (o *Obj) update(dt float64, input wo.Input) {
 		o.MoveXY(0, -objSpeed*dt)
 	}
 
-}
-
-func (o *Obj) draw(canvas *pixelgl.Canvas) {
-	o.Object.Draw(canvas)
 }

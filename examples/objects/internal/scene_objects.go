@@ -35,5 +35,5 @@ func (s *scene) Update(dt float64, input wo.Input) wo.SceneResult {
 }
 
 func (s *scene) Draw(canvas *pixelgl.Canvas) {
-	s.obj.draw(canvas)
+	s.obj.Draw(canvas)
 }

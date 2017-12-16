@@ -12,6 +12,24 @@ type Object struct {
 	Rot    float64
 }
 
+func NewObject(loader Loader, spriteName string, x, y, w, h float64) (*Object, error) {
+	var sprite *pixel.Sprite
+	var err error
+	if loader != nil && spriteName != "" {
+		sprite, err = loader.Sprite(spriteName)
+		if err != nil {
+			return nil, err
+		}
+	}
+	o := &Object{
+		Sprite: sprite,
+		Pos:    pixel.V(x, y),
+		Size:   pixel.V(w, h),
+		Rot:    0,
+	}
+	return o, nil
+}
+
 func (o *Object) Bounds() pixel.Rect {
 	return pixel.R(o.Pos.X, o.Pos.Y, o.Pos.X+o.Size.X, o.Pos.Y+o.Size.Y)
 }
@@ -25,6 +43,9 @@ func (o *Object) Move(v pixel.Vec) {
 }
 
 func (o *Object) Draw(canvas *pixelgl.Canvas) {
+	if o.Sprite == nil {
+		return
+	}
 	mat := Fit(o.Sprite.Picture().Bounds(), o.Bounds()).Rotated(o.Pos, o.Rot)
 	o.Sprite.Draw(canvas, mat)
 }
