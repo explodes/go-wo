@@ -3,18 +3,15 @@ package wo
 import (
 	"testing"
 
-	"time"
-
 	"fmt"
+
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	fpsTestFps       = 60
-	fpsTestFrameRate = 1. / 60.
-
-	fpsTestTimeEpsilon = 0.0000001
+	fpsTestFps = 60
 )
 
 type fpsTest func(*testing.T, *FpsLimiter, *fakeClock)
@@ -32,7 +29,7 @@ func TestFpsLimiter(t *testing.T) {
 		t.Run(funcName(t, test), func(t *testing.T) {
 			t.Parallel()
 			clock := NewFakeClock()
-			fps := newFpsLimiterClock(60, clock)
+			fps := newFpsLimiterClock(fpsTestFps, clock)
 			test(t, fps, clock)
 		})
 	}
@@ -45,45 +42,69 @@ func TestNewFpsLimiter(t *testing.T) {
 }
 
 func testFpsLimiter_CurrentFrameFps(t *testing.T, fps *FpsLimiter, clock *fakeClock) {
-	clock.AdvanceSeconds(fpsTestFrameRate)
+	const (
+		secondsPerFrame = 1. / fpsTestFps
+
+		epsilon = 0.0000001
+	)
+
+	clock.AdvanceSeconds(secondsPerFrame)
 
 	framesPerSecond := fps.CurrentFrameFps()
 
-	assert.InEpsilon(t, fpsTestFps, framesPerSecond, fpsTestTimeEpsilon)
+	assert.InEpsilon(t, fpsTestFps, framesPerSecond, epsilon)
 }
 
 func testFpsLimiter_Reset(t *testing.T, fps *FpsLimiter, clock *fakeClock) {
+	const (
+		epsilon = 0.0000001
+	)
+
 	clock.AdvanceSeconds(2)
 	fps.Reset()
 
 	fpsTime := fps.frameStart.Sub(time.Time{}).Seconds()
 
-	assert.InEpsilon(t, 2, fpsTime, fpsTestTimeEpsilon)
+	assert.InEpsilon(t, 2, fpsTime, epsilon)
 }
 
 func testFpsLimiter_SetLimit(t *testing.T, fps *FpsLimiter, clock *fakeClock) {
+	const (
+		epsilon = 0.0000001
+	)
+
 	fps.SetLimit(30)
 	fps.WaitForNextFrame()
 
 	framesPerSecond := fps.CurrentFrameFps()
 
-	assert.InEpsilon(t, 30, framesPerSecond, fpsTestTimeEpsilon)
+	assert.InEpsilon(t, 30, framesPerSecond, epsilon)
 }
 
 func testFpsLimiter_StartFrame(t *testing.T, fps *FpsLimiter, clock *fakeClock) {
+	const (
+		epsilon = 0.0000001
+	)
+
 	clock.AdvanceSeconds(1)
 
 	diff := fps.StartFrame()
 
-	assert.InEpsilon(t, 1, diff, fpsTestTimeEpsilon)
+	assert.InEpsilon(t, 1, diff, epsilon)
 }
 
 func testFpsLimiter_WaitForNextFrame(t *testing.T, fps *FpsLimiter, clock *fakeClock) {
+	const (
+		secondsPerFrame = 1. / fpsTestFps
+
+		epsilon = 0.0000001
+	)
+
 	fps.WaitForNextFrame()
 
-	now := clock.ElapsedDuration().Seconds()
+	now := clock.ElapsedSeconds()
 
-	assert.InEpsilon(t, fpsTestFrameRate, now, fpsTestTimeEpsilon)
+	assert.InEpsilon(t, secondsPerFrame, now, epsilon)
 }
 
 func BenchmarkFpsLimiter_Loop(b *testing.B) {

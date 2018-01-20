@@ -37,6 +37,7 @@ func (c *fakeClock) Advance(d time.Duration) {
 	c.now = c.now.Add(d)
 	c.Unlock()
 }
+
 func (c *fakeClock) AdvanceSeconds(dt float64) {
 	c.Lock()
 	d := time.Duration(int64(dt * float64(time.Second)))
@@ -49,5 +50,9 @@ func (c *fakeClock) Set(when time.Time) {
 }
 
 func (c *fakeClock) ElapsedDuration() time.Duration {
-	return c.Now().Sub(time.Time{})
+	return time.Duration(c.now.UnixNano())
+}
+
+func (c *fakeClock) ElapsedSeconds() float64 {
+	return c.now.Sub(time.Time{}).Seconds()
 }
