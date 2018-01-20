@@ -106,7 +106,7 @@ func (load *simpleLoader) Sprite(name string, transforms ...ImageTransformer) (*
 	if err != nil {
 		return nil, err
 	}
-	img, err = transformImage(img, transforms...)
+	img, err = TransformImage(img, transforms...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (load *simpleLoader) SpriteSheet(name string, opts SpriteSheetOptions, tran
 	if err != nil {
 		return nil, err
 	}
-	img, err = transformImage(img, transforms...)
+	img, err = TransformImage(img, transforms...)
 	if err != nil {
 		return nil, err
 	}

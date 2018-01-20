@@ -17,7 +17,7 @@ func DecodePicture(b []byte, transforms ...ImageTransformer) (*pixel.PictureData
 	if err != nil {
 		return nil, err
 	}
-	img, err = transformImage(img, transforms...)
+	img, err = TransformImage(img, transforms...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func AlphaKeyTransformer(key color.Color) ImageTransformer {
 }
 
 // TintTransformer transforms an image into an image where
-// pixels become the shade specified, inherting only the
+// pixels become the shade specified, inheriting only the
 // original alpha component.
 func TintTransformer(tint color.Color) ImageTransformer {
 	return func(base image.Image) (image.Image, error) {
@@ -53,6 +53,7 @@ func TintTransformer(tint color.Color) ImageTransformer {
 	}
 }
 
+// ResizeTransformer transforms an image by resizing it
 func ResizeTransformer(width, height uint) ImageTransformer {
 	return func(base image.Image) (image.Image, error) {
 		transformed := resize.Resize(width, height, base, resize.Bicubic)
@@ -60,9 +61,9 @@ func ResizeTransformer(width, height uint) ImageTransformer {
 	}
 }
 
-// transformImage applies a chain of image transformations
-// to a given image.
-func transformImage(base image.Image, transforms ...ImageTransformer) (image.Image, error) {
+// TransformImage applies a chain of image transformations to
+// a given image in order, returning the first error if encountered.
+func TransformImage(base image.Image, transforms ...ImageTransformer) (image.Image, error) {
 	var err error
 	for _, transform := range transforms {
 		base, err = transform(base)
