@@ -1,3 +1,4 @@
+OUTFILE=soccer
 
 res: cleanRes
 	# Building resources...
@@ -7,11 +8,11 @@ cleanRes:
 	rm res/res.go 2> /dev/null || true
 
 clean: cleanRes
-	rm soccer 2> /dev/null || true
+	rm $(OUTFILE) 2> /dev/null || true
 
 build: clean res
 	# Building application...
-	go build -o soccer .
+	go build -o $(OUTFILE) .
 
 run: build
-	./soccer
+	./$(OUTFILE)

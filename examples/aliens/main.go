@@ -4,7 +4,7 @@ import (
 	"flag"
 
 	"github.com/explodes/go-wo"
-	"github.com/explodes/go-wo/examples/objects/internal"
+	"github.com/explodes/go-wo/examples/aliens/internal"
 )
 
 var (

@@ -40,6 +40,19 @@ func AlphaKeyTransformer(key color.Color) ImageTransformer {
 	}
 }
 
+// TintTransformer transforms an image into an image where
+// pixels become the shade specified, inherting only the
+// original alpha component.
+func TintTransformer(tint color.Color) ImageTransformer {
+	return func(base image.Image) (image.Image, error) {
+		transformed := &tintedImage{
+			Image: base,
+			tint:  tint,
+		}
+		return transformed, nil
+	}
+}
+
 func ResizeTransformer(width, height uint) ImageTransformer {
 	return func(base image.Image) (image.Image, error) {
 		transformed := resize.Resize(width, height, base, resize.Bicubic)
@@ -58,6 +71,28 @@ func transformImage(base image.Image, transforms ...ImageTransformer) (image.Ima
 		}
 	}
 	return base, nil
+}
+
+// tintedImage is an Image whose pixels are tinted to an
+// exact color using an inherited alpha component
+type tintedImage struct {
+	image.Image
+	tint color.Color
+}
+
+// At overrides the base Image's At function to return
+// a tinted pixel. The original alpha component is
+// preserved.
+func (t *tintedImage) At(x, y int) color.Color {
+	base := t.Image.At(x, y)
+	_, _, _, ba := base.RGBA()
+	ir, ig, ib, _ := t.tint.RGBA()
+	return color.RGBA{
+		R: uint8(ir),
+		G: uint8(ig),
+		B: uint8(ib),
+		A: uint8(ba),
+	}
 }
 
 // transparent is a constant for completely transparent colors.

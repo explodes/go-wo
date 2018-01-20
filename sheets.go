@@ -88,3 +88,8 @@ func (ss *SpriteSheet) SetFrame(frameNum int) *pixel.Sprite {
 func (ss *SpriteSheet) NumFrames() int {
 	return len(ss.frames)
 }
+
+// Bounds returns the bounds of the current frame
+func (ss *SpriteSheet) Bounds() pixel.Rect {
+	return ss.sprite.Frame()
+}

@@ -1,3 +1,4 @@
+OUTFILE=guns
 
 res: cleanRes
 	# Building resources...
@@ -7,11 +8,11 @@ cleanRes:
 	rm res/res.go 2> /dev/null || true
 
 clean: cleanRes
-	rm guns 2> /dev/null || true
+	rm $(OUTFILE) 2> /dev/null || true
 
 build: clean res
 	# Building application...
-	go build -o guns .
+	go build -o $(OUTFILE) .
 
 run: build
-	./guns
+	./$(OUTFILE)

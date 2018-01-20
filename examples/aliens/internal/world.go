@@ -2,12 +2,12 @@ package internal
 
 import (
 	"github.com/explodes/go-wo"
-	"github.com/explodes/go-wo/examples/objects/res"
+	"github.com/explodes/go-wo/examples/aliens/res"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	title  = "Objects"
+	title  = "Aliens"
 	width  = 800
 	height = 600
 	fps    = 60

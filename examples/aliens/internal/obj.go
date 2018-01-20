@@ -2,7 +2,9 @@ package internal
 
 import (
 	"github.com/explodes/go-wo"
+	"github.com/explodes/go-wo/wobj"
 
+	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
 
@@ -11,11 +13,11 @@ const (
 )
 
 type Obj struct {
-	*wo.Object
+	*wobj.Object
 }
 
 func newObj(loader wo.Loader) (*Obj, error) {
-	o, err := wo.NewObject(loader, "img/ship_512.png", 200, 200, 24, 24)
+	o, err := wobj.LoadSpriteObject(loader, "img/ship_512.png", 200, 200, 24, 24)
 	if err != nil {
 		return nil, err
 	}
@@ -29,16 +31,16 @@ func (o *Obj) update(dt float64, input wo.Input) {
 	o.Rot += wo.DegToRad(90) * dt
 
 	if input.Pressed(pixelgl.KeyLeft) {
-		o.MoveXY(-objSpeed*dt, 0)
+		o.Move(pixel.V(-objSpeed*dt, 0))
 	}
 	if input.Pressed(pixelgl.KeyRight) {
-		o.MoveXY(objSpeed*dt, 0)
+		o.Move(pixel.V(objSpeed*dt, 0))
 	}
 	if input.Pressed(pixelgl.KeyUp) {
-		o.MoveXY(0, objSpeed*dt)
+		o.Move(pixel.V(0, objSpeed*dt))
 	}
 	if input.Pressed(pixelgl.KeyDown) {
-		o.MoveXY(0, -objSpeed*dt)
+		o.Move(pixel.V(0, -objSpeed*dt))
 	}
 
 }
