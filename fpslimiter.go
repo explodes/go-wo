@@ -7,6 +7,8 @@ import (
 // FpsLimiter is a tool used to limit the number of frames
 // drawn or executed to a given fps (frames per second).
 type FpsLimiter struct {
+	clock clock
+
 	// wait is duration to wait each frame to keep a
 	// consistent FPS
 	wait time.Duration
@@ -18,9 +20,15 @@ type FpsLimiter struct {
 
 // NewFpsLimiter creates a new FpsLimiter.
 func NewFpsLimiter(maxFps float64) *FpsLimiter {
+	return newFpsLimiterClock(maxFps, &systemClock{})
+}
+
+// NewFpsLimiter creates a new FpsLimiter with the given clock
+func newFpsLimiterClock(maxFps float64, clock clock) *FpsLimiter {
 	fpsLimiter := &FpsLimiter{
-		frameStart: time.Now(),
+		clock: clock,
 	}
+	fpsLimiter.Reset()
 	fpsLimiter.SetLimit(maxFps)
 	return fpsLimiter
 }
@@ -28,13 +36,13 @@ func NewFpsLimiter(maxFps float64) *FpsLimiter {
 // Reset resets the internal start time so that an immediate call
 // to StartFrame will return (close to) zero.
 func (f *FpsLimiter) Reset() {
-	f.frameStart = time.Now()
+	f.frameStart = f.clock.Now()
 }
 
 // StartFrame marks the beginning of a frame and returns the time
 // since the last frame.
 func (f *FpsLimiter) StartFrame() float64 {
-	delta := time.Since(f.frameStart).Seconds()
+	delta := f.clock.Since(f.frameStart).Seconds()
 	f.Reset()
 	return delta
 }
@@ -42,7 +50,7 @@ func (f *FpsLimiter) StartFrame() float64 {
 // WaitForNextFrame sleeps the amount of time required to limit
 // to the specified fps.
 func (f *FpsLimiter) WaitForNextFrame() {
-	time.Sleep(f.wait - time.Since(f.frameStart))
+	f.clock.Sleep(f.wait - f.clock.Since(f.frameStart))
 }
 
 // SetLimit sets the fps limit.
@@ -52,5 +60,5 @@ func (f *FpsLimiter) SetLimit(maxFps float64) {
 
 // CurrentFrameFps gets the fps of the current frame.
 func (f *FpsLimiter) CurrentFrameFps() float64 {
-	return 1 / time.Since(f.frameStart).Seconds()
+	return 1 / f.clock.Since(f.frameStart).Seconds()
 }
