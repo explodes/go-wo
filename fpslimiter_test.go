@@ -5,6 +5,8 @@ import (
 
 	"time"
 
+	"fmt"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,4 +84,22 @@ func testFpsLimiter_WaitForNextFrame(t *testing.T, fps *FpsLimiter, clock *fakeC
 	now := clock.ElapsedDuration().Seconds()
 
 	assert.InEpsilon(t, fpsTestFrameRate, now, fpsTestTimeEpsilon)
+}
+
+func BenchmarkFpsLimiter_Loop(b *testing.B) {
+	loopSizes := []int{
+		10, 100, 1000, 10000,
+	}
+	for _, loopSize := range loopSizes {
+		loopSize := loopSize
+		b.Run(fmt.Sprintf("loopSize[%d]", loopSize), func(b *testing.B) {
+			fps := newFpsLimiterClock(60, NewFakeClock())
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < loopSize; j++ {
+					fps.StartFrame()
+					fps.WaitForNextFrame()
+				}
+			}
+		})
+	}
 }
