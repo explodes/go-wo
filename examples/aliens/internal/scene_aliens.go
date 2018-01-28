@@ -127,7 +127,7 @@ func (s *scene) Update(dt float64, input wo.Input) wo.SceneResult {
 	if input.Pressed(pixelgl.KeyEscape) {
 		return wo.SceneResultError
 	}
-	if input.JustPressed(pixelgl.KeySpace) || input.JustPressed(pixelgl.KeyW) || (s.bulletDelay <= 0 && (input.Pressed(pixelgl.KeySpace) || input.Pressed(pixelgl.KeyW))) {
+	if input.JustPressed(pixelgl.KeySpace, pixelgl.KeyW) || (s.bulletDelay <= 0 && input.Pressed(pixelgl.KeySpace, pixelgl.KeyW)) {
 		bullet := s.bullets.Spawn()
 		bullet.Pos = s.ship.Pos.Add(pixel.V(s.ship.Size.X*0.25, s.ship.Size.Y))
 		s.shotSfx.Play()

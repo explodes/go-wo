@@ -25,6 +25,7 @@ func Run(run func()) {
 // into the graphical programming of an application.
 type World struct {
 	window *pixelgl.Window
+	input  Input
 	canvas *pixelgl.Canvas
 	fit    pixel.Matrix
 
@@ -60,6 +61,7 @@ func NewWorld(title string, width, height int, scenes map[string]SceneFactory) (
 
 	world := &World{
 		window: window,
+		input:  &windowInput{window},
 		canvas: canvas,
 		scenes: scenes,
 		Color:  colornames.Black,
@@ -112,7 +114,7 @@ func (w *World) runToCompletion(scene Scene) SceneResult {
 	w.fps.Reset()
 	for !w.window.Closed() {
 		dt := w.fps.StartFrame()
-		result := scene.Update(dt, w.window)
+		result := scene.Update(dt, w.input)
 		if result != SceneResultNone {
 			return result
 		}
