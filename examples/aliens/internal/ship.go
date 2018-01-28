@@ -29,10 +29,10 @@ func newShip(loader wo.Loader, bounds pixel.Rect) (*Ship, error) {
 }
 
 func (o *Ship) Update(dt float64, input wo.Input) {
-	if input.Pressed(pixelgl.KeyLeft) {
+	if input.Pressed(pixelgl.KeyLeft) || input.Pressed(pixelgl.KeyA) {
 		o.Move(pixel.V(-shipSpeed*dt, 0))
 	}
-	if input.Pressed(pixelgl.KeyRight) {
+	if input.Pressed(pixelgl.KeyRight) || input.Pressed(pixelgl.KeyD) {
 		o.Move(pixel.V(shipSpeed*dt, 0))
 	}
 }

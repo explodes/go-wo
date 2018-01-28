@@ -41,43 +41,54 @@ func (a *AlienRow) Update(dt float64, bounds pixel.Rect) {
 	if a.direction == DirectionLeft {
 		a.UpdateDirection(dt, -1)
 		for _, alien := range a.aliens {
-			if alien != nil {
-				if alien.Bounds().Min.X <= bounds.Min.X {
-					a.direction = DirectionRight
-					a.DownShift()
-				}
-				break
+			if alien == nil {
+				continue
 			}
+			if alien.Bounds().Min.X <= bounds.Min.X {
+				a.direction = DirectionRight
+				a.DownShift()
+			}
+			break
 		}
 	} else if a.direction == DirectionRight {
 		a.UpdateDirection(dt, 1)
 		for i := len(a.aliens) - 1; i >= 0; i++ {
 			alien := a.aliens[i]
-			if alien != nil {
-				if alien.Bounds().Max.X >= bounds.Max.X {
-					a.direction = DirectionLeft
-					a.DownShift()
-				}
-				break
+			if alien == nil {
+				continue
 			}
+			if alien.Bounds().Max.X >= bounds.Max.X {
+				a.direction = DirectionLeft
+				a.DownShift()
+			}
+			break
 		}
 	}
 }
 
 func (a *AlienRow) DownShift() {
 	for _, alien := range a.aliens {
+		if alien == nil {
+			continue
+		}
 		alien.Move(pixel.V(0, -alien.Bounds().H()))
 	}
 }
 
 func (a *AlienRow) Draw(canvas *pixelgl.Canvas) {
 	for _, alien := range a.aliens {
+		if alien == nil {
+			continue
+		}
 		alien.Draw(canvas)
 	}
 }
 
 func (a *AlienRow) UpdateDirection(dt, moveFactor float64) {
 	for _, alien := range a.aliens {
+		if alien == nil {
+			continue
+		}
 		alien.Move(pixel.V(a.speed*dt*moveFactor, 0))
 	}
 }
