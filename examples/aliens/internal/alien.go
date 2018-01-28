@@ -16,7 +16,7 @@ const (
 
 const (
 	alienSize           = 28
-	baseAlienSpeed      = 30
+	baseAlienSpeed      = 60
 	alienSpeedPerSecond = 0.5
 )
 
@@ -52,7 +52,7 @@ func (a *AlienRow) Update(dt float64, bounds pixel.Rect) {
 		}
 	} else if a.direction == DirectionRight {
 		a.UpdateDirection(dt, 1)
-		for i := len(a.aliens) - 1; i >= 0; i++ {
+		for i := len(a.aliens) - 1; i >= 0; i-- {
 			alien := a.aliens[i]
 			if alien == nil {
 				continue

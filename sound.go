@@ -79,9 +79,9 @@ func (a *Audible) Play() {
 
 // Speaker is the output for a Sound.
 type Speaker struct {
-	sampleRate   beep.SampleRate
-	quality      int
-	bufferTiming time.Duration
+	//sampleRate   beep.SampleRate
+	//quality      int
+	//bufferTiming time.Duration
 
 	mixer *beep.Mixer
 }
@@ -89,10 +89,7 @@ type Speaker struct {
 // NewSpeaker creates and initializes a new Speaker.
 func NewSpeaker() (*Speaker, error) {
 	spkr := &Speaker{
-		sampleRate:   audioSampleRate,
-		quality:      audioResampleQuality,
-		bufferTiming: audioBufferTiming,
-		mixer:        &beep.Mixer{},
+		mixer: &beep.Mixer{},
 	}
 	err := spkr.init()
 	if err != nil {
@@ -103,7 +100,7 @@ func NewSpeaker() (*Speaker, error) {
 
 // init prepares this Speaker for playback.
 func (s *Speaker) init() error {
-	err := speaker.Init(s.sampleRate, s.sampleRate.N(s.bufferTiming))
+	err := speaker.Init(audioSampleRate, audioSampleRate.N(audioBufferTiming))
 	if err != nil {
 		return err
 	}
@@ -122,8 +119,8 @@ func (s *Speaker) Play(sound *Sound) {
 // as it plays.
 func (s *Speaker) ensureSampleRate(sound *Sound) beep.Streamer {
 	stream := sound.stream()
-	if sound.audioFormat.SampleRate != s.sampleRate {
-		return beep.Resample(s.quality, sound.audioFormat.SampleRate, s.sampleRate, stream)
+	if sound.audioFormat.SampleRate != audioSampleRate {
+		return beep.Resample(audioResampleQuality, sound.audioFormat.SampleRate, audioSampleRate, stream)
 	}
 	return stream
 }
