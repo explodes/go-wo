@@ -140,6 +140,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/usedbytes/hsv"
+  packages = ["."]
+  revision = "c0565042a95abda8d9f0c97238df3b3420db0990"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   revision = "a6600008915114d9c087fad9f03d75087b1a74df"
@@ -177,6 +183,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f38be8ae431e6608bacc9ceacb7722c1c01b5f08b537f47d1fc89550bbb80f93"
+  inputs-digest = "3773240bf190c623db92945043a244781bbf94b5ea018f092e81ef00c268371c"
   solver-name = "gps-cdcl"
   solver-version = 1
