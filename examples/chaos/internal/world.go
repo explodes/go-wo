@@ -18,12 +18,14 @@ const (
 )
 
 const (
-	gotoSierpinski wo.SceneResult = iota
+	gotoTitle wo.SceneResult = iota
+	gotoSierpinski
 	gotoCircles
 )
 
 var (
 	sceneBindings = map[pixelgl.Button]wo.SceneResult{
+		pixelgl.Key0: gotoTitle,
 		pixelgl.Key1: gotoSierpinski,
 		pixelgl.Key2: gotoCircles,
 	}
@@ -46,6 +48,7 @@ func NewWorld(debug bool) *World {
 
 func (w *World) Run() {
 	scenes := map[string]wo.SceneFactory{
+		"title":      w.newTitleScene,
 		"sierpinski": w.newSierpinskiScene,
 		"circles":    w.newCirclesScene,
 	}
@@ -56,7 +59,7 @@ func (w *World) Run() {
 	}
 	world.SetFps(fps)
 
-	currentScene := w.randomScene(scenes)
+	currentScene := "title"
 
 	for {
 		log := logrus.WithField("currentScene", currentScene)
@@ -73,6 +76,9 @@ func (w *World) Run() {
 		case wo.SceneResultWindowClosed:
 			log.Info("goodbye!")
 			return
+		case gotoTitle:
+			log.Info("Title")
+			currentScene = "title"
 		case gotoSierpinski:
 			log.Info("Sierpinski")
 			currentScene = "sierpinski"
@@ -81,19 +87,6 @@ func (w *World) Run() {
 			currentScene = "circles"
 		}
 	}
-}
-
-func (w *World) randomScene(scenes map[string]wo.SceneFactory) string {
-	n := len(scenes)
-	target := w.rng.Intn(n)
-	i := 0
-	for sceneName := range scenes {
-		if i == target {
-			return sceneName
-		}
-		i++
-	}
-	return ""
 }
 
 func (w *World) maybeSelectScene(input wo.Input) wo.SceneResult {

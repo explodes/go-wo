@@ -19,10 +19,10 @@ const (
 
 	defaultCosEffect = 45
 	defaultPowEffect = 0.85
-	cosEffectDelta   = 1
-	powEffectDelta   = 0.05
+	cosEffectDelta   = 0.1
+	powEffectDelta   = 0.01
 
-	keyDelay = 0.1
+	keyDelay = 0
 )
 
 var (
@@ -78,7 +78,7 @@ func (s *circlesScene) Update(dt float64, input wo.Input) wo.SceneResult {
 		}
 	}
 
-	s.drawCircles()
+	s.renderCircles()
 
 	return s.w.maybeSelectScene(input)
 }
@@ -96,7 +96,7 @@ func (s *circlesScene) increaseEffect(input wo.Input, keyIncrease, keyDecrease p
 	}
 }
 
-func (s *circlesScene) drawCircles() {
+func (s *circlesScene) renderCircles() {
 	dt := math.Cos(s.time)*s.cosEffect + s.cosEffect*1.12
 
 	s.im.Clear()
@@ -129,6 +129,7 @@ func (s *circlesScene) Draw(canvas *pixelgl.Canvas) {
 	s.im.Draw(canvas)
 	drawText(
 		canvas,
+		pixel.V(10, canvas.Bounds().H()-10),
 		s.infoText,
 		fmt.Sprintf("cos (↑↓) : %f", s.cosEffect),
 		fmt.Sprintf("pow (←→): %f", s.powEffect),

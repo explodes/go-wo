@@ -6,18 +6,17 @@ import (
 	"github.com/faiface/pixel/text"
 )
 
-func drawText(canvas *pixelgl.Canvas, text *text.Text, lines ...string) {
+func drawText(canvas *pixelgl.Canvas, topLeft pixel.Vec, text *text.Text, lines ...string) {
 	const (
-		initialOffset float64 = 10
-		lineSpacing   float64 = 5
+		lineSpacing float64 = 2
 	)
-	offset := initialOffset
+	offset := 0.0
 	for _, line := range lines {
 		text.Clear()
 		text.WriteRune('\r')
 		text.WriteString(line)
 		bounds := text.Bounds()
-		text.Draw(canvas, pixel.IM.Moved(pixel.V(initialOffset, canvas.Bounds().H()-bounds.H()-offset)))
+		text.Draw(canvas, pixel.IM.Moved(pixel.V(topLeft.X, topLeft.Y-bounds.H()-offset)))
 		offset += bounds.H() + lineSpacing
 	}
 }
