@@ -131,8 +131,8 @@ func (s *circlesScene) Draw(canvas *pixelgl.Canvas) {
 		canvas,
 		pixel.V(10, canvas.Bounds().H()-10),
 		s.infoText,
-		fmt.Sprintf("cos (↑↓) : %f", s.cosEffect),
-		fmt.Sprintf("pow (←→): %f", s.powEffect),
-		fmt.Sprintf("colorized (space): %v", s.colorized),
+		fmt.Sprintf("↑↓) cos: %f", s.cosEffect),
+		fmt.Sprintf("←→) pow: %f", s.powEffect),
+		fmt.Sprintf("space) colorized: %v", s.colorized),
 	)
 }

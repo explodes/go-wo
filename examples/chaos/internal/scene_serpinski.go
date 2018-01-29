@@ -11,6 +11,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
 )
 
@@ -28,20 +29,29 @@ type sierpinskiScene struct {
 	bounds pixel.Rect
 	im     *imdraw.IMDraw
 
+	infoText *text.Text
+
 	triangle [3]pixel.Vec
 	colors   [3]color.Color
 	seed     pixel.Vec
 }
 
 func (w *World) newSierpinskiScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
+
+	infoFont, err := w.loader.FontFace("fonts/SourceSansPro-Regular.ttf", 16)
+	if err != nil {
+		return nil, err
+	}
+	defer infoFont.Close()
+	infoText := text.New(pixel.V(0, 0), text.NewAtlas(infoFont, asciiPlusArrows))
+
 	scene := &sierpinskiScene{
-		w:   w,
-		rng: w.rng,
-
-		bounds: canvas.Bounds(),
-		im:     imdraw.New(nil),
-
-		colors: [3]color.Color{colornames.Red, colornames.Green, colornames.Blue},
+		w:        w,
+		rng:      w.rng,
+		bounds:   canvas.Bounds(),
+		im:       imdraw.New(nil),
+		infoText: infoText,
+		colors:   [3]color.Color{colornames.Red, colornames.Green, colornames.Blue},
 	}
 	scene.triangle = scene.randomTriangle(w.rng, canvas.Bounds())
 	scene.seed = scene.randomPoint(w.rng, canvas.Bounds())
@@ -78,6 +88,12 @@ func (s *sierpinskiScene) addNewPoint() {
 
 func (s *sierpinskiScene) Draw(canvas *pixelgl.Canvas) {
 	s.im.Draw(canvas)
+	drawText(
+		canvas,
+		pixel.V(10, canvas.Bounds().H()-10),
+		s.infoText,
+		"1) regenerate",
+	)
 }
 
 func (s *sierpinskiScene) colorFor(n int, pt pixel.Vec) color.Color {
