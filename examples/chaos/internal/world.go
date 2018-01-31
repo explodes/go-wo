@@ -15,12 +15,15 @@ const (
 	width  = 920
 	height = width
 	fps    = 60
+
+	keyDelay = 0
 )
 
 const (
 	gotoTitle wo.SceneResult = iota
 	gotoSierpinski
 	gotoCircles
+	gotoTree
 )
 
 var (
@@ -28,6 +31,7 @@ var (
 		pixelgl.Key0: gotoTitle,
 		pixelgl.Key1: gotoSierpinski,
 		pixelgl.Key2: gotoCircles,
+		pixelgl.Key3: gotoTree,
 	}
 )
 
@@ -51,6 +55,7 @@ func (w *World) Run() {
 		"title":      w.newTitleScene,
 		"sierpinski": w.newSierpinskiScene,
 		"circles":    w.newCirclesScene,
+		"tree":       w.newTreeScene,
 	}
 
 	world, err := wo.NewWorld(title, width, height, scenes)
@@ -85,6 +90,9 @@ func (w *World) Run() {
 		case gotoCircles:
 			log.Info("Circles")
 			currentScene = "circles"
+		case gotoTree:
+			log.Info("Tree")
+			currentScene = "tree"
 		}
 	}
 }

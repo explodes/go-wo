@@ -21,8 +21,6 @@ const (
 	defaultPowEffect = 0.85
 	cosEffectDelta   = 0.1
 	powEffectDelta   = 0.01
-
-	keyDelay = 0
 )
 
 var (

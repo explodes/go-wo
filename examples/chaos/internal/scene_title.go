@@ -138,12 +138,13 @@ func (s *titleScene) Draw(canvas *pixelgl.Canvas) {
 
 	drawText(
 		canvas,
-		pixel.V(724, 171),
+		pixel.V(724, 193),
 		s.infoText,
 		"     CHAOS",
 		"~ ~ ~ ~ ~ ~ ~ ~",
 		"1) Sierpinski",
 		"2) Circles",
+		"3) Tree",
 		"0) Title Screen",
 		"esc) Quit",
 	)

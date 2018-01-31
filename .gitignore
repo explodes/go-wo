@@ -5,3 +5,4 @@ examples/soccer/soccer
 examples/aliens/aliens
 examples/chaos/chaos
 vendor/
+*.trace
