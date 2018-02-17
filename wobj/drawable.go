@@ -14,6 +14,12 @@ type SpriteDrawable struct {
 	Sprite *pixel.Sprite
 }
 
+func NewSpriteDrawable(sprite *pixel.Sprite) *SpriteDrawable {
+	return &SpriteDrawable{
+		Sprite: sprite,
+	}
+}
+
 func (s *SpriteDrawable) Bounds() pixel.Rect {
 	return s.Sprite.Picture().Bounds()
 }
@@ -24,6 +30,12 @@ func (s *SpriteDrawable) Draw(target pixel.Target, matrix pixel.Matrix) {
 
 type SpriteSheetDrawable struct {
 	Sheet *wo.SpriteSheet
+}
+
+func NewSpriteSheetDrawable(sheet *wo.SpriteSheet) *SpriteSheetDrawable {
+	return &SpriteSheetDrawable{
+		Sheet: sheet,
+	}
 }
 
 func (s *SpriteSheetDrawable) Bounds() pixel.Rect {

@@ -6,42 +6,27 @@ import (
 )
 
 type Object struct {
+	Tag string
+
+	Pos  pixel.Vec
+	Size pixel.Vec
+	Rot  float64
+
+	Velocity pixel.Vec
+
 	Drawable Drawable
-	Pos      pixel.Vec
-	Size     pixel.Vec
-	Rot      float64
-}
 
-func LoadSpriteObject(loader wo.Loader, spriteName string, x, y, w, h float64, transforms ...wo.ImageTransformer) (*Object, error) {
-	var sprite *pixel.Sprite
-	var err error
-	if loader != nil && spriteName != "" {
-		sprite, err = loader.Sprite(spriteName, transforms...)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return NewSpriteObject(sprite, x, y, w, h), nil
-}
-
-func NewSpriteObject(sprite *pixel.Sprite, x, y, w, h float64) *Object {
-	drawable := &SpriteDrawable{
-		Sprite: sprite,
-	}
-	return NewDrawableObject(drawable, x, y, w, h)
-}
-
-func NewDrawableObject(drawable Drawable, x, y, w, h float64) *Object {
-	return &Object{
-		Drawable: drawable,
-		Pos:      pixel.V(x, y),
-		Size:     pixel.V(w, h),
-		Rot:      0,
-	}
+	PreSteps  Behaviors
+	Steps     Behaviors
+	PostSteps Behaviors
 }
 
 func (o *Object) Bounds() pixel.Rect {
 	return pixel.R(o.Pos.X, o.Pos.Y, o.Pos.X+o.Size.X, o.Pos.Y+o.Size.Y)
+}
+
+func (o *Object) Collides(other *Object) bool {
+	return wo.Collision(o.Bounds(), other.Bounds())
 }
 
 func (o *Object) Move(v pixel.Vec) {

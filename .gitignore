@@ -4,5 +4,6 @@ examples/guns/guns
 examples/soccer/soccer
 examples/aliens/aliens
 examples/chaos/chaos
+examples/objects/objects
 vendor/
 *.trace
