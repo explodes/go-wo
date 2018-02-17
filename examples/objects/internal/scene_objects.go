@@ -14,6 +14,10 @@ import (
 
 var _ wo.Scene = &scene{}
 
+var (
+	behaviorShipRotation = wobj.FaceDirectionOffset(wo.DegToRad(-45))
+)
+
 type scene struct {
 	time   float64
 	bounds pixel.Rect
@@ -60,34 +64,17 @@ func (s *scene) addObject() {
 	angle := -math.Pi + 2*math.Pi*s.rng.Float64()
 
 	o := &wobj.Object{
-		Tag:  "ship",
-		Pos:  s.bounds.Center(),
-		Size: pixel.V(size, size),
-
+		Tag:      "ship",
+		Pos:      s.bounds.Center(),
+		Size:     pixel.V(size, size),
 		Drawable: s.drawable,
-
 		Velocity: pixel.V(0, speed).Rotated(angle),
-
 		Steps: wobj.MakeBehaviors(
 			wobj.Movement,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			wobj.FaceDirectionOffset(wo.DegToRad(-45)),
-			func(source *wobj.Object, dt float64) {
-				objBounds := source.Bounds()
-				switch {
-				case objBounds.Min.X <= s.bounds.Min.X:
-					source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-				case objBounds.Max.X >= s.bounds.Max.X:
-					source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-				}
-				switch {
-				case objBounds.Min.Y <= s.bounds.Min.Y:
-					source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-				case objBounds.Max.Y >= s.bounds.Max.Y:
-					source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-				}
-			},
+			behaviorShipRotation,
+			s.behaviorReflectInBounds,
 		),
 	}
 	s.objects.Add(o)
@@ -107,4 +94,20 @@ func (s *scene) norm(min, max float64) float64 {
 	mean := (max + min) / 2
 	r := s.rng.NormFloat64()*stddev + mean
 	return math.Max(min, math.Min(max, r))
+}
+
+func (s *scene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
+	objBounds := source.Bounds()
+	switch {
+	case objBounds.Min.X <= s.bounds.Min.X:
+		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+	case objBounds.Max.X >= s.bounds.Max.X:
+		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+	}
+	switch {
+	case objBounds.Min.Y <= s.bounds.Min.Y:
+		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+	case objBounds.Max.Y >= s.bounds.Max.Y:
+		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+	}
 }
