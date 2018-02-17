@@ -17,12 +17,17 @@ type Obj struct {
 }
 
 func newObj(loader wo.Loader) (*Obj, error) {
-	o, err := wobj.LoadSpriteObject(loader, "img/ship_512.png", 200, 200, 24, 24)
+	sprite, err := loader.Sprite("img/ship_512.png")
 	if err != nil {
 		return nil, err
 	}
 	obj := &Obj{
-		Object: o,
+		Object: &wobj.Object{
+			Pos:      pixel.V(200, 200),
+			Size:     pixel.V(24, 24),
+			Drawable: wobj.NewSpriteDrawable(sprite),
+			Rot:      wo.DegToRad(45),
+		},
 	}
 	return obj, nil
 }

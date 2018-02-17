@@ -27,7 +27,10 @@ func NewBulletPool() *BulletPool {
 	drawable := newBulletDrawable()
 	factory := func() interface{} {
 		return &Bullet{
-			Object: wobj.NewDrawableObject(drawable, 0, 0, 6, 6),
+			Object: &wobj.Object{
+				Size:     pixel.V(6, 6),
+				Drawable: drawable,
+			},
 		}
 	}
 	return &BulletPool{

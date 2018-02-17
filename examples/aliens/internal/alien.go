@@ -104,10 +104,13 @@ type Alien struct {
 }
 
 func newAlien(drawable *wobj.SpriteSheetDrawable, pos pixel.Vec, kind int) *Alien {
-	o := wobj.NewDrawableObject(drawable, pos.X, pos.Y, alienSize, alienSize)
-	o.Rot = wo.DegToRad(180)
 	return &Alien{
-		Object:   o,
+		Object: &wobj.Object{
+			Drawable: drawable,
+			Pos:      pos,
+			Size:     pixel.V(alienSize, alienSize),
+			Rot:      wo.DegToRad(180),
+		},
 		drawable: drawable,
 		kind:     kind,
 	}

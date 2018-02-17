@@ -17,13 +17,17 @@ type Ship struct {
 }
 
 func newShip(loader wo.Loader, bounds pixel.Rect) (*Ship, error) {
-	o, err := wobj.LoadSpriteObject(loader, "img/ship_512.png", bounds.W()/2-12, 0, 24, 24)
+	sprite, err := loader.Sprite("img/ship_512.png")
 	if err != nil {
 		return nil, err
 	}
-	o.Rot = wo.DegToRad(45)
 	ship := &Ship{
-		Object: o,
+		Object: &wobj.Object{
+			Pos:      pixel.V(bounds.W()/2-12, 0),
+			Size:     pixel.V(24, 24),
+			Drawable: wobj.NewSpriteDrawable(sprite),
+			Rot:      wo.DegToRad(45),
+		},
 	}
 	return ship, nil
 }
