@@ -18,7 +18,7 @@ func (b Behaviors) Execute(source *Object, dt float64) {
 
 func Collision(with *Object, reaction Reaction) Behavior {
 	return func(source *Object, dt float64) {
-		if source.Collides(with) {
+		if source.Collides(with.Bounds()) {
 			reaction(source, with, dt)
 		}
 	}

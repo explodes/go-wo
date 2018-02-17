@@ -1,4 +1,4 @@
-OUTFILE=objects
+OUTFILE=behavioral
 
 res: cleanRes
 	# Building resources...

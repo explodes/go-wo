@@ -18,10 +18,18 @@ var (
 	behaviorShipRotation = wobj.FaceDirectionOffset(wo.DegToRad(-45))
 )
 
+const (
+	shipTag            = "ship"
+	numShips           = 100
+	sizeMin, sizeMax   = 5, 12
+	speedMin, speedMax = 10, 150
+)
+
 type scene struct {
 	time   float64
 	bounds pixel.Rect
 	rng    *rand.Rand
+	input  wo.Input
 
 	drawable wobj.Drawable
 
@@ -47,8 +55,9 @@ func (w *World) newObjectsScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 
 func (s *scene) Update(dt float64, input wo.Input) wo.SceneResult {
 	s.time += dt
+	s.input = input
 
-	if s.objects.Size() < 100 {
+	if s.objects.Size() < numShips {
 		s.addObject()
 	}
 
@@ -59,22 +68,29 @@ func (s *scene) Update(dt float64, input wo.Input) wo.SceneResult {
 
 func (s *scene) addObject() {
 
-	size := s.norm(5, 8)
-	speed := s.norm(10, 500)
-	angle := -math.Pi + 2*math.Pi*s.rng.Float64()
+	size := s.norm(sizeMin, sizeMax)
+	speed := s.norm(speedMin, speedMax)
+	angle := 2 * math.Pi * s.rng.Float64()
+
+	var onBorderCollision wobj.Behavior
+	if s.rng.Float64() < .5 {
+		onBorderCollision = s.behaviorReflectInBounds
+	} else {
+		onBorderCollision = s.behaviorRemoveOutOfBounds
+	}
 
 	o := &wobj.Object{
-		Tag:      "ship",
+		Tag:      shipTag,
 		Pos:      s.bounds.Center(),
 		Size:     pixel.V(size, size),
 		Drawable: s.drawable,
 		Velocity: pixel.V(0, speed).Rotated(angle),
 		Steps: wobj.MakeBehaviors(
-			wobj.Movement,
+			s.behaviorShipInput,
 		),
 		PostSteps: wobj.MakeBehaviors(
 			behaviorShipRotation,
-			s.behaviorReflectInBounds,
+			onBorderCollision,
 		),
 	}
 	s.objects.Add(o)
@@ -88,12 +104,25 @@ func (s *scene) norm(min, max float64) float64 {
 	if min == max {
 		return min
 	}
-
-	stddev := min + (max-min)/3
-
+	stddev99 := (max - min) / 3.2165 / 2
 	mean := (max + min) / 2
-	r := s.rng.NormFloat64()*stddev + mean
+	r := s.rng.NormFloat64()*stddev99 + mean
 	return math.Max(min, math.Min(max, r))
+}
+
+func (s *scene) behaviorShipInput(source *wobj.Object, dt float64) {
+	switch {
+	case s.input.Pressed(pixelgl.KeyA):
+		mag := source.Velocity.Len()
+		angle := wo.DegToRad(45)
+		source.Velocity = pixel.V(mag, 0).Rotated(angle)
+	case s.input.Pressed(pixelgl.KeySpace):
+		mag := source.Velocity.Len()
+		angle := source.Velocity.Angle() + wo.DegToRad(360)*dt
+		source.Velocity = pixel.V(mag, 0).Rotated(angle)
+	default:
+		wobj.Movement(source, dt)
+	}
 }
 
 func (s *scene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
@@ -109,5 +138,11 @@ func (s *scene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
 		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
 	case objBounds.Max.Y >= s.bounds.Max.Y:
 		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+	}
+}
+
+func (s *scene) behaviorRemoveOutOfBounds(source *wobj.Object, dt float64) {
+	if !source.Collides(s.bounds) {
+		s.objects.Remove(source)
 	}
 }

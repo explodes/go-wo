@@ -2,12 +2,12 @@ package internal
 
 import (
 	"github.com/explodes/go-wo"
-	"github.com/explodes/go-wo/examples/objects/res"
+	"github.com/explodes/go-wo/examples/behavioral/res"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	title  = "Objects"
+	title  = "Behavioral Objects Example"
 	width  = 500
 	height = 500
 	fps    = 60

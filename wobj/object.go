@@ -48,9 +48,9 @@ func (o *Object) Bounds() pixel.Rect {
 	return pixel.R(o.Pos.X, o.Pos.Y, o.Pos.X+o.Size.X, o.Pos.Y+o.Size.Y)
 }
 
-// Collides tests to see if this Object collides with another.
-func (o *Object) Collides(other *Object) bool {
-	return wo.Collision(o.Bounds(), other.Bounds())
+// Collides tests to see if this Object collides with a Rect.
+func (o *Object) Collides(r pixel.Rect) bool {
+	return wo.Collision(o.Bounds(), r)
 }
 
 // Move is a helper function used to add a Vec to this Object's current Pos.
