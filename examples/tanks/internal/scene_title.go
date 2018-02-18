@@ -42,15 +42,11 @@ type titleScene struct {
 }
 
 func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
-	speaker, err := wo.NewSpeaker()
-	if err != nil {
-		return nil, err
-	}
 	soundtrack, err := w.loader.Sound("mp3", "music/octane.mp3")
 	if err != nil {
 		return nil, err
 	}
-	go loopSoundtrack(speaker.Audible(soundtrack))
+	go loopSoundtrack(w.speaker.Audible(soundtrack))
 
 	instructionsFont, err := w.loader.FontFace("fonts/Lekton-Regular.ttf", 12)
 	if err != nil {

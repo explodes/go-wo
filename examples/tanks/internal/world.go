@@ -17,14 +17,16 @@ const (
 )
 
 type World struct {
-	loader wo.Loader
-	debug  bool
+	loader  wo.Loader
+	debug   bool
+	speaker *wo.Speaker
 
 	blueScore int
 	redScore  int
 }
 
 func NewWorld(debug bool) *World {
+
 	return &World{
 		loader: wo.NewLoaderFromByteReader(res.Load),
 		debug:  debug,
@@ -36,6 +38,11 @@ func (w *World) Run() {
 		"title": w.newTitleScene,
 		"game":  w.newGameScene,
 	}
+	speaker, err := wo.NewSpeaker()
+	if err != nil {
+		logrus.Fatalf("error starting world: %v", err)
+	}
+	w.speaker = speaker
 
 	world, err := wo.NewWorld(title, width, height, scenes)
 	if err != nil {

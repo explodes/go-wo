@@ -84,8 +84,7 @@ type gameScene struct {
 
 	message *text.Text
 
-	speaker *wo.Speaker
-	cannon  *wo.Sound
+	cannon *wo.Sound
 
 	bluePlayer *wobj.Object
 	redPlayer  *wobj.Object
@@ -108,11 +107,6 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	}
 	defer countdownFont.Close()
 	countdownText := text.New(pixel.V(canvas.Bounds().W()/2, 10), text.NewAtlas(countdownFont, text.ASCII))
-
-	speaker, err := wo.NewSpeaker()
-	if err != nil {
-		return nil, err
-	}
 
 	cannon, err := w.loader.Sound("wav", "sound/tank.wav")
 	if err != nil {
@@ -161,7 +155,6 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		layers:  wobj.NewLayers(numLayers),
 		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		shot:    wobj.NewSpriteDrawable(shotSprite),
-		speaker: speaker,
 		cannon:  cannon,
 		message: countdownText,
 	}
@@ -338,7 +331,7 @@ func (s *gameScene) spawnBlueShots() {
 	s.layers[layerBullets].Add(blueBullet1)
 	s.layers[layerBullets].Add(blueBullet2)
 
-	s.speaker.Play(s.cannon)
+	s.w.speaker.Play(s.cannon)
 }
 
 func (s *gameScene) spawnRedShots() {
@@ -362,7 +355,7 @@ func (s *gameScene) spawnRedShots() {
 	}
 	s.layers[layerBullets].Add(redBullet)
 
-	s.speaker.Play(s.cannon)
+	s.w.speaker.Play(s.cannon)
 }
 
 func (s *gameScene) behaviorRemoveOutOfBounds(source *wobj.Object, dt float64) {
