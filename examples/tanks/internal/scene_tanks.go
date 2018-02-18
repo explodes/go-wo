@@ -113,7 +113,7 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		return nil, err
 	}
 
-	cannon, err := w.loader.Sound("wav", "sound/shot.wav")
+	cannon, err := w.loader.Sound("wav", "sound/tank.wav")
 	if err != nil {
 		return nil, err
 	}
