@@ -5,5 +5,6 @@ examples/soccer/soccer
 examples/aliens/aliens
 examples/chaos/chaos
 examples/behavioral/behavioral
+examples/tanks/tanks
 vendor/
 *.trace
