@@ -2,6 +2,28 @@ package wobj
 
 import "github.com/faiface/pixel"
 
+type Layers []*Objects
+
+func NewLayers(n int) Layers {
+	layers := make(Layers, 0, n)
+	for i := 0; i < n; i++ {
+		layers = append(layers, NewObjects())
+	}
+	return layers
+}
+
+func (ly Layers) Update(dt float64) {
+	for _, layer := range ly {
+		layer.Update(dt)
+	}
+}
+
+func (ly Layers) Draw(target pixel.Target) {
+	for _, layer := range ly {
+		layer.Draw(target)
+	}
+}
+
 type Objects struct {
 	all    ObjectSet
 	tagged objectTagMap
