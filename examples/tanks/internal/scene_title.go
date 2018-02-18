@@ -25,6 +25,10 @@ var (
 	}
 )
 
+const (
+	soundtrackDuration = 2*time.Minute + 36*time.Second
+)
+
 type titleScene struct {
 	rng *rand.Rand
 
@@ -38,12 +42,22 @@ type titleScene struct {
 }
 
 func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
+	speaker, err := wo.NewSpeaker()
+	if err != nil {
+		return nil, err
+	}
+	soundtrack, err := w.loader.Sound("mp3", "music/octane.mp3")
+	if err != nil {
+		return nil, err
+	}
+	go loopSoundtrack(speaker.Audible(soundtrack))
+
 	instructionsFont, err := w.loader.FontFace("fonts/Lekton-Regular.ttf", 12)
 	if err != nil {
 		return nil, err
 	}
 	defer instructionsFont.Close()
-	instructionsText := text.New(pixel.V(800, 40), text.NewAtlas(instructionsFont, text.ASCII))
+	instructionsText := text.New(pixel.V(width, 40), text.NewAtlas(instructionsFont, text.ASCII))
 	if w.blueScore == 0 && w.redScore == 0 {
 		instructionsText.Color = colornames.White
 		for _, line := range instructions {
@@ -127,4 +141,11 @@ func (s *titleScene) Draw(canvas *pixelgl.Canvas) {
 	s.score.Draw(canvas, pixel.IM)
 	s.help.Draw(canvas, pixel.IM.Moved(pixel.V(-s.help.Bounds().W()/2, 0)))
 	s.instructions.Draw(canvas, pixel.IM)
+}
+
+func loopSoundtrack(audible *wo.Audible) {
+	for {
+		audible.Play()
+		<-time.After(soundtrackDuration)
+	}
 }
