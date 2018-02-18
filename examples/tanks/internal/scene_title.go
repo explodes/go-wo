@@ -44,10 +44,12 @@ func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	}
 	defer instructionsFont.Close()
 	instructionsText := text.New(pixel.V(800, 40), text.NewAtlas(instructionsFont, text.ASCII))
-	instructionsText.Color = colornames.White
-	for _, line := range instructions {
-		instructionsText.Dot.X -= instructionsText.BoundsOf(line).W() + 10
-		fmt.Fprintln(instructionsText, line)
+	if w.blueScore == 0 && w.redScore == 0 {
+		instructionsText.Color = colornames.White
+		for _, line := range instructions {
+			instructionsText.Dot.X -= instructionsText.BoundsOf(line).W() + 10
+			fmt.Fprintln(instructionsText, line)
+		}
 	}
 
 	helpFont, err := w.loader.FontFace("fonts/DampfPlatzs.ttf", 24)
@@ -74,12 +76,14 @@ func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	}
 	defer scoreFont.Close()
 	scoreText := text.New(pixel.V(10, canvas.Bounds().H()-36), text.NewAtlas(scoreFont, text.ASCII))
-	scoreText.Color = colornames.Blue
-	scoreText.WriteString(fmt.Sprintf("Blue: %d", w.blueScore))
-	scoreText.Color = colornames.White
-	scoreText.WriteString(" - ")
-	scoreText.Color = colornames.Red
-	scoreText.WriteString(fmt.Sprintf("Red: %d", w.redScore))
+	if w.blueScore != 0 || w.redScore != 0 {
+		scoreText.Color = colornames.Blue
+		scoreText.WriteString(fmt.Sprintf("Blue: %d", w.blueScore))
+		scoreText.Color = colornames.White
+		scoreText.WriteString(" - ")
+		scoreText.Color = colornames.Red
+		scoreText.WriteString(fmt.Sprintf("Red: %d", w.redScore))
+	}
 
 	scene := &titleScene{
 		rng:      rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -101,6 +105,9 @@ func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 }
 
 func (s *titleScene) Update(dt float64, input wo.Input) wo.SceneResult {
+	if input.JustPressed(pixelgl.KeyEscape) {
+		return wo.SceneResultWindowClosed
+	}
 	if input.Pressed(pixelgl.KeySpace) {
 		return gotoBattle
 	}

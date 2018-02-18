@@ -218,6 +218,9 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 }
 
 func (s *gameScene) Update(dt float64, input wo.Input) wo.SceneResult {
+	if input.JustPressed(pixelgl.KeyEscape) {
+		return wo.SceneResultWindowClosed
+	}
 	s.time += dt
 	s.input = input
 
