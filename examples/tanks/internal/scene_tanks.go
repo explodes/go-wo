@@ -33,14 +33,14 @@ const (
 
 const (
 	tankRotatesPerSecond  = 0.5
-	tankSpeed             = 175
+	tankSpeed             = 185
 	tankWidth, tankHeight = 170 * 3 / 10, 200 * 3 / 10
 
 	victoryMessageDuration = 3
 
 	autoShotPerSecond = 0.5
 
-	bulletSpeed = 560
+	bulletSpeed = 580
 
 	tagBackground = "background"
 	tagBluePlayer = "bluePlayer"
@@ -392,6 +392,9 @@ func (s *gameScene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
 }
 
 func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
+	if s.phase != phaseBattle {
+		return
+	}
 	for bullet := range s.layers[layerBullets].Tagged(tagBlueBullet) {
 		if source.Collides(bullet.Bounds()) {
 			s.w.blueScore++
@@ -402,6 +405,9 @@ func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
 }
 
 func (s *gameScene) behaviorBlueHitsRedBullet(source *wobj.Object, dt float64) {
+	if s.phase != phaseBattle {
+		return
+	}
 	for bullet := range s.layers[layerBullets].Tagged(tagRedBullet) {
 		if source.Collides(bullet.Bounds()) {
 			s.w.redScore++
