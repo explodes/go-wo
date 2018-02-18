@@ -395,7 +395,7 @@ func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
 		if source.Collides(bullet.Bounds()) {
 			s.w.blueScore++
 			s.phase = phaseBlueVictory
-			s.onVictory("Blue", colornames.Blue)
+			s.onVictory("Blue", colornames.Cadetblue)
 		}
 	}
 }
@@ -405,7 +405,7 @@ func (s *gameScene) behaviorBlueHitsRedBullet(source *wobj.Object, dt float64) {
 		if source.Collides(bullet.Bounds()) {
 			s.w.redScore++
 			s.phase = phaseRedVictory
-			s.onVictory("Red", colornames.Red)
+			s.onVictory("Red", colornames.Indianred)
 		}
 	}
 }
