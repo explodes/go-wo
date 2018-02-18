@@ -17,9 +17,13 @@ import (
 
 var _ wo.Scene = &gameScene{}
 
-const ()
-
-var ()
+var (
+	instructions = []string{"Blue will rotate the tank with (A).",
+		"Red will rotate the tank with (L).",
+		"Your tank will automatically fire.",
+		"Last one standing wins.",
+	}
+)
 
 type titleScene struct {
 	rng *rand.Rand
@@ -28,12 +32,24 @@ type titleScene struct {
 	titlePos   []pixel.Vec
 	titleColor []color.Color
 
-	help *text.Text
-
-	score *text.Text
+	help         *text.Text
+	score        *text.Text
+	instructions *text.Text
 }
 
 func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
+	instructionsFont, err := w.loader.FontFace("fonts/Lekton-Regular.ttf", 12)
+	if err != nil {
+		return nil, err
+	}
+	defer instructionsFont.Close()
+	instructionsText := text.New(pixel.V(800, 40), text.NewAtlas(instructionsFont, text.ASCII))
+	instructionsText.Color = colornames.White
+	for _, line := range instructions {
+		instructionsText.Dot.X -= instructionsText.BoundsOf(line).W() + 10
+		fmt.Fprintln(instructionsText, line)
+	}
+
 	helpFont, err := w.loader.FontFace("fonts/DampfPlatzs.ttf", 24)
 	if err != nil {
 		return nil, err
@@ -76,8 +92,9 @@ func (w *World) newTitleScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 			colornames.Cornflowerblue,
 			colornames.White,
 		},
-		help:  helpText,
-		score: scoreText,
+		help:         helpText,
+		score:        scoreText,
+		instructions: instructionsText,
 	}
 
 	return scene, nil
@@ -102,4 +119,5 @@ func (s *titleScene) Draw(canvas *pixelgl.Canvas) {
 	}
 	s.score.Draw(canvas, pixel.IM)
 	s.help.Draw(canvas, pixel.IM.Moved(pixel.V(-s.help.Bounds().W()/2, 0)))
+	s.instructions.Draw(canvas, pixel.IM)
 }

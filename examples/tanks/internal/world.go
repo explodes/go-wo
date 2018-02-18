@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	title  = "Multiplayer Tanks"
+	title  = "Tanks"
 	width  = 800
 	height = 400
 	fps    = 60
