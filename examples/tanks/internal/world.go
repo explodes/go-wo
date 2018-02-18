@@ -8,8 +8,8 @@ import (
 
 const (
 	title  = "Tanks"
-	width  = 800
-	height = 400
+	width  = 1920 / 5 * 2
+	height = 1080 / 5 * 2
 	fps    = 60
 
 	gotoBattle wo.SceneResult = 1

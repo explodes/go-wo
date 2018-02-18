@@ -32,8 +32,9 @@ const (
 )
 
 const (
-	tankRotatesPerSecond = 0.5
-	tankSpeed            = 175
+	tankRotatesPerSecond  = 0.5
+	tankSpeed             = 175
+	tankWidth, tankHeight = 170 * 3 / 10, 200 * 3 / 10
 
 	victoryMessageDuration = 3
 
@@ -128,7 +129,7 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		return nil, err
 	}
 
-	tankSheet, err := w.loader.SpriteSheet("img/tanks3.png", wo.SpriteSheetOptions{
+	tankSheet, err := w.loader.SpriteSheet("img/tanks.png", wo.SpriteSheetOptions{
 		Width:   149,
 		Height:  166,
 		Columns: 1,
@@ -137,9 +138,9 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	if err != nil {
 		return nil, err
 	}
-	tank1Drawable := wobj.NewSpriteSheetDrawable(tankSheet)
+	blueTankDrawable := wobj.NewSpriteSheetDrawable(tankSheet)
 
-	tankSheet, err = w.loader.SpriteSheet("img/tanks3.png", wo.SpriteSheetOptions{
+	tankSheet, err = w.loader.SpriteSheet("img/tanks.png", wo.SpriteSheetOptions{
 		Width:   149,
 		Height:  166,
 		Columns: 1,
@@ -150,7 +151,7 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	}
 	tank2Drawable := wobj.NewSpriteSheetDrawable(tankSheet)
 
-	tank1Drawable.Sheet.SetFrame(0)
+	blueTankDrawable.Sheet.SetFrame(0)
 	tank2Drawable.Sheet.SetFrame(1)
 
 	scene := &gameScene{
@@ -173,9 +174,9 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 
 	player1 := &wobj.Object{
 		Tag:      tagBluePlayer,
-		Pos:      pixel.V(100, 200),
-		Size:     pixel.V(170*3/10, 200*3/10),
-		Drawable: tank1Drawable,
+		Pos:      pixel.V(100, height/2-tankHeight/2),
+		Size:     pixel.V(tankWidth, tankHeight),
+		Drawable: blueTankDrawable,
 		Rot:      tankRotateOffset + wo.DegToRad(135),
 
 		Steps: wobj.MakeBehaviors(
@@ -191,8 +192,8 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 
 	player2 := &wobj.Object{
 		Tag:      tagRedPlayer,
-		Pos:      pixel.V(700, 200),
-		Size:     pixel.V(170*3/10, 200*3/10),
+		Pos:      pixel.V(width-100-tankWidth, height/2-tankHeight/2),
+		Size:     pixel.V(tankWidth, tankHeight),
 		Drawable: tank2Drawable,
 		Rot:      tankRotateOffset + wo.DegToRad(-45),
 
