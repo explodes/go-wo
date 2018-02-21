@@ -81,6 +81,11 @@ func (w *World) RunScene(name string) (SceneResult, error) {
 	return w.runToCompletion(scene), nil
 }
 
+// Input gets the World's Input.
+func (w *World) Input() Input {
+	return w.input
+}
+
 // SetFps sets the target frames per second to render scenes.
 func (w *World) SetFps(maxFps float64) {
 	w.fps.SetLimit(maxFps)
