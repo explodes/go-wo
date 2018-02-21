@@ -12,7 +12,7 @@ game loop.
 ```sh
 
 # Debian
-sudo apt install libasound2-dev libgl1-mesa-dev libxcursor-dev libx11-dev libxinerama-dev libxi-dev
+sudo apt install libasound2-dev libgl1-mesa-dev libxcursor-dev libx11-dev libxinerama-dev libxi-dev libxrandr-dev
 go get -u github.com/jteeuwen/go-bindata/...
 go get github.com/explodes/go-wo
 ```
