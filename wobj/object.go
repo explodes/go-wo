@@ -48,16 +48,6 @@ func (o *Object) Bounds() pixel.Rect {
 	return pixel.R(o.Pos.X, o.Pos.Y, o.Pos.X+o.Size.X, o.Pos.Y+o.Size.Y)
 }
 
-// Collides tests to see if this Object collides with a Rect.
-func (o *Object) Collides(r pixel.Rect) bool {
-	return wo.Collision(o.Bounds(), r)
-}
-
-// Move is a helper function used to add a Vec to this Object's current Pos.
-func (o *Object) Move(v pixel.Vec) {
-	o.Pos = o.Pos.Add(v)
-}
-
 // Draw will render this Object on a target if a Drawable is associated with
 // this Object. The Object's Drawable will be scaled and translated to fit
 // this Object's Bounds. It will also be rotated by Rot radians to

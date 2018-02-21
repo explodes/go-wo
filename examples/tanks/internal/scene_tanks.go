@@ -359,7 +359,7 @@ func (s *gameScene) spawnRedShots() {
 }
 
 func (s *gameScene) behaviorRemoveOutOfBounds(source *wobj.Object, dt float64) {
-	if !source.Collides(s.bounds) {
+	if !wo.Collision(source.Bounds(), s.bounds) {
 		s.layers[layerBullets].Remove(source)
 	}
 }
@@ -388,8 +388,9 @@ func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
 	if s.phase != phaseBattle {
 		return
 	}
+	sourceBounds := source.Bounds()
 	for bullet := range s.layers[layerBullets].Tagged(tagBlueBullet) {
-		if source.Collides(bullet.Bounds()) {
+		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.blueScore++
 			s.phase = phaseBlueVictory
 			s.onVictory("Blue", colornames.Cadetblue)
@@ -401,8 +402,9 @@ func (s *gameScene) behaviorBlueHitsRedBullet(source *wobj.Object, dt float64) {
 	if s.phase != phaseBattle {
 		return
 	}
+	sourceBounds := source.Bounds()
 	for bullet := range s.layers[layerBullets].Tagged(tagRedBullet) {
-		if source.Collides(bullet.Bounds()) {
+		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.redScore++
 			s.phase = phaseRedVictory
 			s.onVictory("Red", colornames.Indianred)

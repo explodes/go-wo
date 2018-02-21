@@ -142,7 +142,7 @@ func (s *scene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
 }
 
 func (s *scene) behaviorRemoveOutOfBounds(source *wobj.Object, dt float64) {
-	if !source.Collides(s.bounds) {
+	if !wo.Collision(source.Bounds(), s.bounds) {
 		s.objects.Remove(source)
 	}
 }

@@ -1,5 +1,7 @@
 package wobj
 
+import "github.com/explodes/go-wo"
+
 type Behavior func(source *Object, dt float64)
 
 type Reaction func(source, with *Object, dt float64)
@@ -18,7 +20,7 @@ func (b Behaviors) Execute(source *Object, dt float64) {
 
 func Collision(with *Object, reaction Reaction) Behavior {
 	return func(source *Object, dt float64) {
-		if source.Collides(with.Bounds()) {
+		if wo.Collision(source.Bounds(), with.Bounds()) {
 			reaction(source, with, dt)
 		}
 	}
