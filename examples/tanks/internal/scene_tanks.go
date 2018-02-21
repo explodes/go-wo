@@ -159,24 +159,25 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		message: countdownText,
 	}
 
-	rot1 := tankRotateOffset + wo.DegToRad(135)
-	rot2 := tankRotateOffset + wo.DegToRad(-45)
+	rot1 := wo.DegToRad(135)
+	rot2 := wo.DegToRad(-45)
 	if scene.rng.Float64() < 0.5 {
 		rot1, rot2 = rot2, rot1
 	}
 
 	player1 := &wobj.Object{
-		Tag:      tagBluePlayer,
-		Pos:      pixel.V(100, height/2-tankHeight/2),
-		Size:     pixel.V(tankWidth, tankHeight),
-		Drawable: blueTankDrawable,
-		Rot:      tankRotateOffset + wo.DegToRad(135),
+		Tag:       tagBluePlayer,
+		Pos:       pixel.V(100, height/2-tankHeight/2),
+		Size:      pixel.V(tankWidth, tankHeight),
+		Drawable:  blueTankDrawable,
+		Rot:       rot1,
+		RotNormal: tankRotateOffset,
 
 		Steps: wobj.MakeBehaviors(
 			scene.behaviorBlueRotateOnButton,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			scene.behaviorReflectInBounds,
+			wobj.ReflectWithin(scene),
 			scene.behaviorBlueHitsRedBullet,
 		),
 	}
@@ -184,17 +185,18 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	scene.layers[layerTanks].Add(player1)
 
 	player2 := &wobj.Object{
-		Tag:      tagRedPlayer,
-		Pos:      pixel.V(width-100-tankWidth, height/2-tankHeight/2),
-		Size:     pixel.V(tankWidth, tankHeight),
-		Drawable: tank2Drawable,
-		Rot:      tankRotateOffset + wo.DegToRad(-45),
+		Tag:       tagRedPlayer,
+		Pos:       pixel.V(width-100-tankWidth, height/2-tankHeight/2),
+		Size:      pixel.V(tankWidth, tankHeight),
+		Drawable:  tank2Drawable,
+		Rot:       rot2,
+		RotNormal: tankRotateOffset,
 
 		Steps: wobj.MakeBehaviors(
 			scene.behaviorRedRotateOnButton,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			scene.behaviorReflectInBounds,
+			wobj.ReflectWithin(scene),
 			scene.behaviorRedHitsBlueBullet,
 		),
 	}
@@ -272,7 +274,7 @@ func (s *gameScene) behaviorBlueRotateOnButton(source *wobj.Object, dt float64) 
 		source.Rot += wo.DegToRad(-tankRotatesPerSecond*360) * dt
 		s.blueShotDelay = 0
 	} else {
-		source.Velocity = pixel.V(tankSpeed, 0).Rotated(source.Rot - tankRotateOffset)
+		source.Velocity = pixel.V(tankSpeed, 0).Rotated(source.Rot)
 		wobj.Movement(source, dt)
 		if s.blueShotDelay > 1.0/autoShotPerSecond {
 			s.spawnBlueShots()
@@ -287,7 +289,7 @@ func (s *gameScene) behaviorRedRotateOnButton(source *wobj.Object, dt float64) {
 		source.Rot += wo.DegToRad(-tankRotatesPerSecond*360) * dt
 		s.redShotDelay = 0
 	} else {
-		source.Velocity = pixel.V(tankSpeed, 0).Rotated(source.Rot - tankRotateOffset)
+		source.Velocity = pixel.V(tankSpeed, 0).Rotated(source.Rot)
 		wobj.Movement(source, dt)
 		if s.redShotDelay > 1.0/autoShotPerSecond {
 			s.spawnRedShots()
@@ -299,15 +301,15 @@ func (s *gameScene) behaviorRedRotateOnButton(source *wobj.Object, dt float64) {
 func (s *gameScene) spawnBlueShots() {
 
 	bounds := s.bluePlayer.Bounds()
-	pos1 := bounds.Center().Add(pixel.V(bounds.W()/2, 2).Rotated(s.bluePlayer.Rot - tankRotateOffset))
-	pos2 := bounds.Center().Add(pixel.V(bounds.W()/2, -8).Rotated(s.bluePlayer.Rot - tankRotateOffset))
+	pos1 := bounds.Center().Add(pixel.V(bounds.W()/2, 2).Rotated(s.bluePlayer.Rot))
+	pos2 := bounds.Center().Add(pixel.V(bounds.W()/2, -8).Rotated(s.bluePlayer.Rot))
 
 	blueBullet1 := &wobj.Object{
 		Tag:      tagBlueBullet,
 		Pos:      pos1,
 		Size:     pixel.V(8, 8),
 		Drawable: s.shot,
-		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.bluePlayer.Rot - tankRotateOffset),
+		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.bluePlayer.Rot),
 		Steps: wobj.MakeBehaviors(
 			wobj.Movement,
 		),
@@ -320,7 +322,7 @@ func (s *gameScene) spawnBlueShots() {
 		Pos:      pos2,
 		Size:     pixel.V(8, 8),
 		Drawable: s.shot,
-		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.bluePlayer.Rot - tankRotateOffset),
+		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.bluePlayer.Rot),
 		Steps: wobj.MakeBehaviors(
 			wobj.Movement,
 		),
@@ -337,7 +339,7 @@ func (s *gameScene) spawnBlueShots() {
 func (s *gameScene) spawnRedShots() {
 
 	bounds := s.redPlayer.Bounds()
-	offset := pixel.V(bounds.H()/2, -8).Rotated(s.redPlayer.Rot - tankRotateOffset)
+	offset := pixel.V(bounds.H()/2, -8).Rotated(s.redPlayer.Rot)
 	pos := bounds.Center().Add(offset)
 
 	redBullet := &wobj.Object{
@@ -345,7 +347,7 @@ func (s *gameScene) spawnRedShots() {
 		Pos:      pos,
 		Size:     pixel.V(14, 14),
 		Drawable: s.shot,
-		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.redPlayer.Rot - tankRotateOffset),
+		Velocity: pixel.V(bulletSpeed, 0).Rotated(s.redPlayer.Rot),
 		Steps: wobj.MakeBehaviors(
 			wobj.Movement,
 		),
@@ -364,24 +366,8 @@ func (s *gameScene) behaviorRemoveOutOfBounds(source *wobj.Object, dt float64) {
 	}
 }
 
-func (s *gameScene) behaviorReflectInBounds(source *wobj.Object, dt float64) {
-	objBounds := source.Bounds()
-	switch {
-	case objBounds.Min.X <= s.bounds.Min.X:
-		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-		source.Rot = source.Velocity.Angle() + tankRotateOffset
-	case objBounds.Max.X >= s.bounds.Max.X:
-		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-		source.Rot = source.Velocity.Angle() + tankRotateOffset
-	}
-	switch {
-	case objBounds.Min.Y <= s.bounds.Min.Y:
-		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-		source.Rot = source.Velocity.Angle() + tankRotateOffset
-	case objBounds.Max.Y >= s.bounds.Max.Y:
-		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-		source.Rot = source.Velocity.Angle() + tankRotateOffset
-	}
+func (s *gameScene) Bounds() pixel.Rect {
+	return s.bounds
 }
 
 func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {

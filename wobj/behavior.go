@@ -2,6 +2,7 @@ package wobj
 
 import (
 	"github.com/explodes/go-wo"
+	"github.com/faiface/pixel"
 )
 
 // Behavior is what happens when an object meets a condition for a given time delta
@@ -62,11 +63,32 @@ func FaceDirection(source *Object, dt float64) {
 	source.Rot = source.Velocity.Angle()
 }
 
-// FaceDirectionOffset is a behavior that adjusts an Object's
-// Rot (rotation) to face the same angle as its Velocity plus
-// a given offset.
-func FaceDirectionOffset(offset float64) Behavior {
+// ReflectWithin creates a Behavior that will reflect the object
+// with confined bounds. The source object will always be placed
+// within the bounder's Bounds.
+func ReflectWithin(bounder Bounder) Behavior {
 	return func(source *Object, dt float64) {
-		source.Rot = source.Velocity.Angle() + offset
+		objBounds := source.Bounds()
+		boundary := bounder.Bounds()
+		switch {
+		case objBounds.Min.X <= boundary.Min.X:
+			source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+			source.Rot = source.Velocity.Angle()
+			source.Pos = pixel.V(boundary.Min.X, source.Pos.Y)
+		case objBounds.Max.X >= boundary.Max.X:
+			source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+			source.Rot = source.Velocity.Angle()
+			source.Pos = pixel.V(boundary.Max.X-source.Size.X, source.Pos.Y)
+		}
+		switch {
+		case objBounds.Min.Y <= boundary.Min.Y:
+			source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+			source.Rot = source.Velocity.Angle()
+			source.Pos = pixel.V(source.Pos.X, boundary.Min.Y)
+		case objBounds.Max.Y >= boundary.Max.Y:
+			source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+			source.Rot = source.Velocity.Angle()
+			source.Pos = pixel.V(source.Pos.X, boundary.Max.Y-source.Size.Y)
+		}
 	}
 }

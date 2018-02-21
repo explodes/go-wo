@@ -27,8 +27,13 @@ type Object struct {
 	// Drawable is an optional Drawable to use to draw this
 	// Object on a Target.
 	Drawable Drawable
-	// Rot is an amount in radians used to rotate the Drawable.
+	// Rot is an amount in radians used to rotate the Drawable
+	// where 0 degrees is right and 90 degrees is upwards.
 	Rot float64
+	// RotNormal is the amount that the drawable should be rotated
+	// initially such that its default orientation is right-facing,
+	// or 0 degrees.
+	RotNormal float64
 
 	// PreSteps is Behaviors to execute before Steps and
 	// PostSteps during an Update performed by Objects.
@@ -58,6 +63,6 @@ func (o *Object) Draw(target pixel.Target) {
 	}
 	bounds := o.Bounds()
 	center := pixel.V(bounds.W()/2, bounds.H()/2)
-	mat := wo.Fit(o.Drawable.Bounds(), o.Bounds()).Moved(center).Rotated(center.Add(o.Pos), o.Rot)
+	mat := wo.Fit(o.Drawable.Bounds(), o.Bounds()).Moved(center).Rotated(center.Add(o.Pos), o.Rot+o.RotNormal)
 	o.Drawable.Draw(target, mat)
 }
