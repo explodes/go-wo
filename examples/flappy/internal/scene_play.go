@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	debugPlayScene = true
+	debugPlayScene = false
 	numPipes       = 3
 )
 
