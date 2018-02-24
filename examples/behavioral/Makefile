@@ -1,4 +1,4 @@
-OUTFILE=behavioral
+OUTFILE=game
 
 res: cleanRes
 	# Building resources...

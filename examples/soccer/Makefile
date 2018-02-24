@@ -1,4 +1,4 @@
-OUTFILE=soccer
+OUTFILE=game
 
 res: cleanRes
 	# Building resources...

@@ -1,4 +1,4 @@
-OUTFILE=chaos
+OUTFILE=game
 
 res: cleanRes
 	# Building resources...

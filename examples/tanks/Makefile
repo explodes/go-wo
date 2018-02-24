@@ -1,4 +1,4 @@
-OUTFILE=tanks
+OUTFILE=game
 
 res: cleanRes
 	# Building resources...
