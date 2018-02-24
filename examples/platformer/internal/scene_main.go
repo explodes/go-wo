@@ -17,7 +17,6 @@ const (
 	layerBackground = iota
 	layerPlatforms
 	layerPlayer
-	layerForeground
 	numLayers
 )
 
