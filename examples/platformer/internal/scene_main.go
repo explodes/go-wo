@@ -33,7 +33,8 @@ type mainScene struct {
 	bounds pixel.Rect
 	time   float64
 
-	level int
+	level  int
+	border float64
 
 	layers wobj.Layers
 }
@@ -91,6 +92,7 @@ func (s *mainScene) createPlayer(x, y, size float64) *wobj.Object {
 		Drawable: drawable,
 		Steps: wobj.MakeBehaviors(
 			func(player *wobj.Object, dt float64) {
+				// physics
 
 				ground := false
 
@@ -133,13 +135,30 @@ func (s *mainScene) createPlayer(x, y, size float64) *wobj.Object {
 			},
 		),
 		PostSteps: wobj.MakeBehaviors(
-			func(source *wobj.Object, dt float64) {
+			// detect finish line
+			func(player *wobj.Object, dt float64) {
 				iter := s.layers.TagIterator(tagFinish)
 				for finish, ok := iter(); ok; finish, ok = iter() {
-					if wo.Collision(source.Bounds(), finish.Bounds()) {
+					if wo.Collision(player.Bounds(), finish.Bounds()) {
 						s.level++
 						s.generateNextLevel()
 					}
+				}
+			},
+			func(player *wobj.Object, dt float64) {
+				// stay in bounds
+				bounds := player.Bounds()
+				switch {
+				case bounds.Min.X < s.border:
+					player.Pos.X = s.border
+				case bounds.Max.X > width-s.border:
+					player.Pos.X = width - s.border - player.Size.X
+				}
+				switch {
+				case bounds.Min.Y < s.border:
+					player.Pos.Y = s.border
+				case bounds.Max.Y > height-s.border:
+					player.Pos.Y = height - s.border - player.Size.Y
 				}
 			},
 		),
@@ -195,7 +214,7 @@ func (s *mainScene) generateNextLevel() {
 		panic("level is not square!")
 	}
 	size := width / square
-	//isize := int(size)
+	s.border = size
 
 	for i := 0; i < isquare; i++ {
 		for j := 0; j < isquare; j++ {
