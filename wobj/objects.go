@@ -5,6 +5,19 @@ import (
 	"github.com/faiface/pixel"
 )
 
+// ObjectContainer is a simple interface for Object containers
+type ObjectContainer interface {
+	Len() int
+	Contains(obj *Object) bool
+	Iterator() ObjectIterator
+}
+
+// ObjectContainer is a simple interface for Object containers that support tags
+type TaggedObjectContainer interface {
+	ObjectContainer
+	TagIterator(tags ...string) ObjectIterator
+}
+
 // ObjectIterator is a function used for iterating over collections of Objects.
 // It is used as follows:
 //
@@ -12,6 +25,7 @@ import (
 // for obj, ok := iter(); ok; obj, ok = iter() {
 //   ..use obj..
 // }
+// Objects removed during iteration will still be present in the iterator.
 type ObjectIterator func() (next *Object, ok bool)
 
 // Layers is a container for multiple Objects collections such that
@@ -42,6 +56,25 @@ func (ly Layers) Draw(target pixel.Target) {
 	}
 }
 
+// Len returns the total number of Objects in all layers
+func (ly Layers) Len() int {
+	sum := 0
+	for _, layer := range ly {
+		sum += layer.Len()
+	}
+	return sum
+}
+
+// Contains checks to see if an Object is in any layer
+func (ly Layers) Contains(obj *Object) bool {
+	for _, layer := range ly {
+		if layer.Contains(obj) {
+			return true
+		}
+	}
+	return false
+}
+
 // Iterator returns an ObjectIterator for all objects in all layers
 func (ly Layers) Iterator() ObjectIterator {
 	iters := make([]ObjectIterator, len(ly))
@@ -66,22 +99,6 @@ func (ly Layers) TagIterator(tags ...string) ObjectIterator {
 		}
 	}
 	return chainIterators(iters)
-}
-
-// chainIterators will iterate through a slice of ObjectIterator consecutively
-func chainIterators(iters []ObjectIterator) ObjectIterator {
-	index := 0
-	return func() (*Object, bool) {
-		for index < len(iters) {
-			next, ok := iters[index]()
-			if !ok {
-				index++
-				continue
-			}
-			return next, ok
-		}
-		return nil, false
-	}
 }
 
 // Objects is a container of Object so that Objects can be quickly added
@@ -168,6 +185,26 @@ func (o *Objects) Draw(target pixel.Target) {
 	}
 }
 
+// Iterator gets an ObjectIterator for all Object in this container
+func (o *Objects) Iterator() ObjectIterator {
+	return o.All().Iterator()
+}
+
+// TagIterator gets an ObjectIterator for all Object in this
+// container with the given tags
+func (o *Objects) TagIterator(tags ...string) ObjectIterator {
+	if len(tags) == 0 {
+		return emptyObjectIterator
+	}
+	iters := make([]ObjectIterator, len(tags))
+	index := 0
+	for _, tag := range tags {
+		iters[index] = o.Tagged(tag).Iterator()
+		index++
+	}
+	return chainIterators(iters)
+}
+
 // ObjectSet is an ordered set of Object.
 type ObjectSet struct {
 	set *ordered_map.OrderedMap
@@ -246,5 +283,21 @@ func (m objectTagMap) remove(tag string, obj *Object) {
 	set := m[tag]
 	if set != nil {
 		set.remove(obj)
+	}
+}
+
+// chainIterators will iterate through a slice of ObjectIterator consecutively
+func chainIterators(iters []ObjectIterator) ObjectIterator {
+	index := 0
+	return func() (*Object, bool) {
+		for index < len(iters) {
+			next, ok := iters[index]()
+			if !ok {
+				index++
+				continue
+			}
+			return next, ok
+		}
+		return nil, false
 	}
 }

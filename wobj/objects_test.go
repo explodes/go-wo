@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	_ TaggedObjectContainer = Layers{}
+	_ TaggedObjectContainer = &Objects{}
+	_ ObjectContainer       = &ObjectSet{}
+)
+
 func TestNewLayers(t *testing.T) {
 	layers := NewLayers(10)
 
@@ -112,6 +118,45 @@ func TestObjects_Contains(t *testing.T) {
 	assert.True(t, objects.Contains(testObj.obj))
 }
 
+func TestObjects_Iterator(t *testing.T) {
+	testObj := newTestObject("tag")
+	testObj2 := newTestObject("tag2")
+	objects := NewObjects()
+	objects.Add(testObj.obj)
+	objects.Add(testObj2.obj)
+
+	iter := objects.Iterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 2, iterSize)
+}
+
+func TestObjects_TagIterator(t *testing.T) {
+	testObj := newTestObject("tag")
+	testObj2 := newTestObject("tag2")
+	objects := NewObjects()
+	objects.Add(testObj.obj)
+	objects.Add(testObj2.obj)
+
+	iter := objects.TagIterator("tag")
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 1, iterSize)
+}
+
+func TestObjects_TagIterator_emptyTags(t *testing.T) {
+	testObj := newTestObject("tag")
+	testObj2 := newTestObject("tag2")
+	objects := NewObjects()
+	objects.Add(testObj.obj)
+	objects.Add(testObj2.obj)
+
+	iter := objects.TagIterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 0, iterSize)
+}
+
 func TestObjectSet_Contains(t *testing.T) {
 	testObj := newTestObject("tag")
 	set := NewObjectSet()
@@ -130,6 +175,43 @@ func TestObjectSet_Iterator_nil(t *testing.T) {
 	iterSize := countIterator(iter)
 
 	assert.Equal(t, 0, iterSize)
+}
+
+func TestObjectSet_RemoveWhileIteratingStillIteratesItem(t *testing.T) {
+	testObj1 := newTestObject("tag")
+	testObj2 := newTestObject("tag")
+	set := NewObjectSet()
+	set.add(testObj1.obj)
+	set.add(testObj2.obj)
+
+	count := 0
+	iter := set.Iterator()
+	for _, ok := iter(); ok; _, ok = iter() {
+		set.remove(testObj2.obj)
+		count++
+	}
+
+	assert.Equal(t, 2, count)
+	assert.Equal(t, 1, set.Len())
+}
+
+func TestObjectSet_IteratorOrder(t *testing.T) {
+	set := NewObjectSet()
+	var expectedOrder []*Object
+	for i := 0; i < 100; i++ {
+		testObj := newTestObject("tag")
+		expectedOrder = append(expectedOrder, testObj.obj)
+		set.add(testObj.obj)
+	}
+
+	count := 0
+	iter := set.Iterator()
+	for next, ok := iter(); ok; next, ok = iter() {
+		assert.Equal(t, expectedOrder[count], next)
+		count++
+	}
+
+	assert.Equal(t, len(expectedOrder), count)
 }
 
 func TestObjectSet_Len_nil(t *testing.T) {
@@ -188,6 +270,18 @@ func TestLayers_TagIterator_skipLayer(t *testing.T) {
 	assert.Equal(t, 1, iterSize)
 }
 
+func TestLayers_TagIterator_emptyTags(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
+
+	iter := layers.TagIterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 0, iterSize)
+}
+
 func TestLayers_TagIterator(t *testing.T) {
 	layers := NewLayers(3)
 	layers[0].Add(newTestObject("a").obj)
@@ -214,4 +308,28 @@ func TestLayers_TagIterator_multipleTags(t *testing.T) {
 	iterSize := countIterator(iter)
 
 	assert.Equal(t, 3, iterSize)
+}
+
+func TestLayers_Len(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[1].Add(newTestObject("b").obj)
+	layers[1].Add(newTestObject("d").obj)
+	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
+
+	size := layers.Len()
+
+	assert.Equal(t, 5, size)
+}
+
+func TestLayers_Contains(t *testing.T) {
+	testObj := newTestObject("a")
+	layers := NewLayers(3)
+
+	assert.False(t, layers.Contains(testObj.obj))
+
+	layers[0].Add(testObj.obj)
+
+	assert.True(t, layers.Contains(testObj.obj))
 }
