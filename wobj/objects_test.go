@@ -78,27 +78,27 @@ func TestObjects_Add_untagged(t *testing.T) {
 	assert.Nil(t, objects.Tagged(""))
 }
 
-func TestObjects_Size(t *testing.T) {
+func TestObjects_Len(t *testing.T) {
 	testObj := newTestObject("tag")
 	objects := NewObjects()
 
-	assert.Equal(t, 0, objects.Size())
+	assert.Equal(t, 0, objects.Len())
 
 	objects.Add(testObj.obj)
 
-	assert.Equal(t, 1, objects.Size())
+	assert.Equal(t, 1, objects.Len())
 }
 
 func TestObjects_Remove(t *testing.T) {
 	testObj := newTestObject("tag")
 	objects := NewObjects()
 
-	assert.Equal(t, 0, objects.Size())
+	assert.Equal(t, 0, objects.Len())
 
 	objects.Add(testObj.obj)
 	objects.Remove(testObj.obj)
 
-	assert.Equal(t, 0, objects.Size())
+	assert.Equal(t, 0, objects.Len())
 }
 
 func TestObjects_Contains(t *testing.T) {
@@ -123,20 +123,66 @@ func TestObjectSet_Contains(t *testing.T) {
 	assert.True(t, set.Contains(testObj.obj))
 }
 
-func TestObjectSet_Iterable_nil(t *testing.T) {
+func TestObjectSet_Iterator_nil(t *testing.T) {
 	var set *ObjectSet = nil
 
-	assert.Len(t, set.Iterable(), 0)
+	iter := set.Iterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 0, iterSize)
 }
 
-func TestObjectSet_Size_nil(t *testing.T) {
+func TestObjectSet_Len_nil(t *testing.T) {
 	var set *ObjectSet = nil
 
-	assert.Equal(t, 0, set.Size())
+	assert.Equal(t, 0, set.Len())
 }
 
 func TestObjectSet_Contains_nil(t *testing.T) {
 	var set *ObjectSet = nil
 
 	assert.False(t, set.Contains(nil))
+}
+
+func countIterator(iter ObjectIterator) int {
+	count := 0
+	for _, ok := iter(); ok; _, ok = iter() {
+		count++
+	}
+	return count
+}
+
+func TestLayers_Iterator(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[1].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("b").obj)
+
+	iter := layers.Iterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 3, iterSize)
+}
+
+func TestLayers_Iterator_skipLayer(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[2].Add(newTestObject("b").obj)
+
+	iter := layers.Iterator()
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 2, iterSize)
+}
+
+func TestLayers_TagIterator(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[1].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("b").obj)
+
+	iter := layers.TagIterator("b")
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 2, iterSize)
 }

@@ -1,11 +1,25 @@
 package wobj
 
 import (
+	"github.com/cevaris/ordered_map"
 	"github.com/faiface/pixel"
 )
 
+// ObjectIterator is a function used for iterating over collections of Objects.
+// It is used as follows:
+//
+// iter := set.Iterator()
+// for obj, ok := iter(); ok; obj, ok = iter() {
+//   ..use obj..
+// }
+type ObjectIterator func() (next *Object, ok bool)
+
+// Layers is a container for multiple Objects collections such that
+// a particular drawing order can be preserved. Updates and Draws will
+// happen from the lowest layer to the highest layer.
 type Layers []*Objects
 
+// NewLayers creates a new container of Objects with a given amount of layers.
 func NewLayers(n int) Layers {
 	layers := make(Layers, 0, n)
 	for i := 0; i < n; i++ {
@@ -14,23 +28,67 @@ func NewLayers(n int) Layers {
 	return layers
 }
 
+// Update updates all Objects. Updates happen in the first layer forward.
 func (ly Layers) Update(dt float64) {
 	for _, layer := range ly {
 		layer.Update(dt)
 	}
 }
 
+// Draw draws all Objects Draws happen in the first layer forward.
 func (ly Layers) Draw(target pixel.Target) {
 	for _, layer := range ly {
 		layer.Draw(target)
 	}
 }
 
+// Iterator returns an ObjectIterator for all objects in all layers
+func (ly Layers) Iterator() ObjectIterator {
+	iters := make([]ObjectIterator, len(ly))
+	for index, layer := range ly {
+		iters[index] = layer.All().Iterator()
+	}
+	return chainIterators(iters)
+}
+
+// Iterator returns an ObjectIterator for all objects
+// with a given tag in all layers
+func (ly Layers) TagIterator(tag string) ObjectIterator {
+	iters := make([]ObjectIterator, len(ly))
+	for index, layer := range ly {
+		iters[index] = layer.Tagged(tag).Iterator()
+	}
+	return chainIterators(iters)
+}
+
+// chainIterators will iterate through a slice of ObjectIterator consecutively
+func chainIterators(iters []ObjectIterator) ObjectIterator {
+	index := 0
+	return func() (*Object, bool) {
+		for index < len(iters) {
+			next, ok := iters[index]()
+			if !ok {
+				index++
+				continue
+			}
+			return next, ok
+		}
+		return nil, false
+	}
+}
+
+// Objects is a container of Object so that Objects can be quickly added
+// and removed from a single source. Objects are also retrievable by tag
+// allowing for quick access for a particular subset of Object.
+//
+// The Tag of an Object should not be modified after being added to this
+// container.
 type Objects struct {
 	all    *ObjectSet
 	tagged objectTagMap
 }
 
+// NewObjects makes a new Objects container.
 func NewObjects() *Objects {
 	return &Objects{
 		all:    NewObjectSet(),
@@ -38,18 +96,26 @@ func NewObjects() *Objects {
 	}
 }
 
-func (o *Objects) Size() int {
-	return o.all.Size()
+// Len returns the amount of Objects in this container
+func (o *Objects) Len() int {
+	return o.all.Len()
 }
 
+// All returns the ObjectSet containing all Objects in this container
 func (o *Objects) All() *ObjectSet {
 	return o.all
 }
 
+// Tagged returns an ObjectSet containing all Objects in this container
+// that have a particular tag. Tags with empty strings are not recorded
+// and Objects whose tags were modified after being added are not
+// considered.
 func (o *Objects) Tagged(tag string) *ObjectSet {
 	return o.tagged[tag]
 }
 
+// Add adds an object to this container. If the Object has a Tag, that
+// tag is used to quickly access a particular subset of Object.
 func (o *Objects) Add(obj *Object) {
 	o.all.add(obj)
 	if obj.Tag != "" {
@@ -57,6 +123,7 @@ func (o *Objects) Add(obj *Object) {
 	}
 }
 
+// Remove removes an object from this container.
 func (o *Objects) Remove(obj *Object) {
 	o.all.remove(obj)
 	if obj.Tag != "" {
@@ -64,105 +131,112 @@ func (o *Objects) Remove(obj *Object) {
 	}
 }
 
+// Contains tests to see if an object is contained in this container.
 func (o *Objects) Contains(obj *Object) bool {
 	return o.all.Contains(obj)
 }
 
+// Update performs all PreSteps, then all Steps, then all PostSteps
+// of Object in this container.
 func (o *Objects) Update(dt float64) {
-	o.PreStep(dt)
-	o.Step(dt)
-	o.PostStep(dt)
-}
-
-func (o *Objects) Draw(target pixel.Target) {
-	for _, object := range o.all.Iterable() {
-		object.Draw(target)
-	}
-}
-
-func (o *Objects) PreStep(dt float64) {
-	for _, object := range o.all.Iterable() {
+	iter := o.all.Iterator()
+	for object, ok := iter(); ok; object, ok = iter() {
 		object.PreSteps.Execute(object, dt)
 	}
-}
-
-func (o *Objects) Step(dt float64) {
-	for _, object := range o.all.Iterable() {
+	iter = o.all.Iterator()
+	for object, ok := iter(); ok; object, ok = iter() {
 		object.Steps.Execute(object, dt)
 	}
-}
-
-func (o *Objects) PostStep(dt float64) {
-	for _, object := range o.all.Iterable() {
+	iter = o.all.Iterator()
+	for object, ok := iter(); ok; object, ok = iter() {
 		object.PostSteps.Execute(object, dt)
 	}
 }
 
-type ObjectSet struct {
-	set []*Object
+// Draw draws all Object in this container.
+func (o *Objects) Draw(target pixel.Target) {
+	iter := o.all.Iterator()
+	for object, ok := iter(); ok; object, ok = iter() {
+		object.Draw(target)
+	}
 }
 
+// ObjectSet is an ordered set of Object.
+type ObjectSet struct {
+	set *ordered_map.OrderedMap
+}
+
+// NewObjectSet creates a new empty set
 func NewObjectSet() *ObjectSet {
 	return &ObjectSet{
-		set: make([]*Object, 0, 32),
+		set: ordered_map.NewOrderedMap(),
 	}
 }
 
-func (os *ObjectSet) Iterable() []*Object {
+// emptyObjectIterator is an ObjectIterator that always
+// returns the ultimate result.
+func emptyObjectIterator() (*Object, bool) {
+	return nil, false
+}
+
+// Iterator returns an iterator function that can be used
+// to iterate over all objects in this set.
+func (os *ObjectSet) Iterator() ObjectIterator {
 	if os == nil {
-		return nil
+		return emptyObjectIterator
 	}
-	return os.set
+	iter := os.set.IterFunc()
+	return func() (*Object, bool) {
+		next, ok := iter()
+		if ok {
+			return next.Key.(*Object), true
+		}
+		return nil, false
+	}
 }
 
-func (os *ObjectSet) Size() int {
+// Len returns the size of this set
+func (os *ObjectSet) Len() int {
 	if os == nil {
 		return 0
 	}
-	return len(os.set)
+	return os.set.Len()
 }
 
+// Contains tests if an Object is contained in this set
 func (os *ObjectSet) Contains(obj *Object) bool {
-	return os.index(obj) != -1
-}
-
-func (os *ObjectSet) index(obj *Object) int {
 	if os == nil {
-		return -1
+		return false
 	}
-	for index, o := range os.set {
-		if o == obj {
-			return index
-		}
-	}
-	return -1
+	_, ok := os.set.Get(obj)
+	return ok
 }
 
+// add is an unexported function that adds objects to this set
 func (os *ObjectSet) add(obj *Object) {
-	if !os.Contains(obj) {
-		os.set = append(os.set, obj)
-	}
+	os.set.Set(obj, struct{}{})
 }
 
+// remove is an unexported function that remove objects from this set
 func (os *ObjectSet) remove(obj *Object) {
-	if index := os.index(obj); index != -1 {
-		os.set = append(os.set[:index], os.set[index+1:]...)
-	}
+	os.set.Delete(obj)
 }
 
+// objectTagMap is a defaultdict-like map for adding and removing
+// objects from an ObjectSet by tag
 type objectTagMap map[string]*ObjectSet
 
-func (m objectTagMap) add(key string, obj *Object) {
-	set := m[key]
+func (m objectTagMap) add(tag string, obj *Object) {
+	set := m[tag]
 	if set == nil {
 		set = NewObjectSet()
-		m[key] = set
+		m[tag] = set
 	}
 	set.add(obj)
 }
 
-func (m objectTagMap) remove(key string, obj *Object) {
-	set := m[key]
+func (m objectTagMap) remove(tag string, obj *Object) {
+	set := m[tag]
 	if set != nil {
 		set.remove(obj)
 	}

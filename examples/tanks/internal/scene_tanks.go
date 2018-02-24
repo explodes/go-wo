@@ -399,7 +399,8 @@ func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
 		return
 	}
 	sourceBounds := source.Bounds()
-	for _, bullet := range s.layers[layerBullets].Tagged(tagBlueBullet).Iterable() {
+	iter := s.layers.TagIterator(tagBlueBullet)
+	for bullet, ok := iter(); ok; bullet, ok = iter() {
 		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.blueScore++
 			s.phase = phaseBlueVictory
@@ -413,7 +414,8 @@ func (s *gameScene) behaviorBlueHitsRedBullet(source *wobj.Object, dt float64) {
 		return
 	}
 	sourceBounds := source.Bounds()
-	for _, bullet := range s.layers[layerBullets].Tagged(tagRedBullet).Iterable() {
+	iter := s.layers.TagIterator(tagRedBullet)
+	for bullet, ok := iter(); ok; bullet, ok = iter() {
 		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.redScore++
 			s.phase = phaseRedVictory

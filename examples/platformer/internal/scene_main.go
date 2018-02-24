@@ -97,19 +97,19 @@ func (s *mainScene) createPlayer(x, y, size float64) *wobj.Object {
 
 				// check collisions against each platform
 				bounds := player.Bounds()
-				for _, layer := range s.layers {
-					for _, platform := range layer.Tagged(tagPlatform).Iterable() {
-						platformBounds := platform.Bounds()
-						if bounds.Max.X <= platformBounds.Min.X || bounds.Min.X >= platformBounds.Max.X {
-							continue
-						}
-						if bounds.Min.Y > platformBounds.Max.Y || bounds.Min.Y < platformBounds.Max.Y+player.Velocity.Y*dt {
-							continue
-						}
-						player.Velocity.Y = 0
-						player.Pos = player.Pos.Add(pixel.V(0, platformBounds.Max.Y-bounds.Min.Y))
-						ground = true
+
+				iter := s.layers.TagIterator(tagPlatform)
+				for platform, ok := iter(); ok; platform, ok = iter() {
+					platformBounds := platform.Bounds()
+					if bounds.Max.X <= platformBounds.Min.X || bounds.Min.X >= platformBounds.Max.X {
+						continue
 					}
+					if bounds.Min.Y > platformBounds.Max.Y || bounds.Min.Y < platformBounds.Max.Y+player.Velocity.Y*dt {
+						continue
+					}
+					player.Velocity.Y = 0
+					player.Pos = player.Pos.Add(pixel.V(0, platformBounds.Max.Y-bounds.Min.Y))
+					ground = true
 				}
 
 				// can jump off of the ground

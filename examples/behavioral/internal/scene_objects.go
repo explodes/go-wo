@@ -53,7 +53,7 @@ func (s *scene) Update(dt float64, input wo.Input) wo.SceneResult {
 	s.time += dt
 	s.input = input
 
-	if s.objects.Size() < numShips {
+	if s.objects.Len() < numShips {
 		s.addObject()
 	}
 
