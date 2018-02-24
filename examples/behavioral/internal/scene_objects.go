@@ -14,10 +14,6 @@ import (
 
 var _ wo.Scene = &scene{}
 
-var (
-	behaviorShipRotation = wobj.FaceDirectionOffset(wo.DegToRad(-45))
-)
-
 const (
 	shipTag            = "ship"
 	numShips           = 100
@@ -80,16 +76,17 @@ func (s *scene) addObject() {
 	}
 
 	o := &wobj.Object{
-		Tag:      shipTag,
-		Pos:      s.bounds.Center(),
-		Size:     pixel.V(size, size),
-		Drawable: s.drawable,
-		Velocity: pixel.V(0, speed).Rotated(angle),
+		Tag:       shipTag,
+		Pos:       s.bounds.Center(),
+		Size:      pixel.V(size, size),
+		Drawable:  s.drawable,
+		Velocity:  pixel.V(0, speed).Rotated(angle),
+		RotNormal: wo.DegToRad(-45),
 		Steps: wobj.MakeBehaviors(
 			s.behaviorShipInput,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			behaviorShipRotation,
+			wobj.FaceDirection,
 			onBorderCollision,
 		),
 	}
