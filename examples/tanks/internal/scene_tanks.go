@@ -50,11 +50,10 @@ const (
 )
 
 const (
-	numLayers = 3
-
-	layerBackground = iota - 1
+	layerBackground = iota
 	layerTanks
 	layerBullets
+	numLayers
 )
 
 var (
