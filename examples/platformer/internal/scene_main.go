@@ -10,6 +10,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/usedbytes/hsv"
 	"golang.org/x/image/colornames"
 )
 
@@ -23,6 +24,7 @@ const (
 const (
 	tagPlayer   = "player"
 	tagPlatform = "platform"
+	tagFinish   = "finish"
 )
 
 type mainScene struct {
@@ -30,6 +32,8 @@ type mainScene struct {
 
 	bounds pixel.Rect
 	time   float64
+
+	level int
 
 	layers wobj.Layers
 }
@@ -43,7 +47,7 @@ func (w *World) createMainScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		bounds: canvas.Bounds(),
 		layers: wobj.NewLayers(numLayers),
 	}
-	s.generateLevel()
+	s.generateNextLevel()
 	return s, nil
 }
 
@@ -128,10 +132,21 @@ func (s *mainScene) createPlayer(x, y, size float64) *wobj.Object {
 
 			},
 		),
+		PostSteps: wobj.MakeBehaviors(
+			func(source *wobj.Object, dt float64) {
+				iter := s.layers.TagIterator(tagFinish)
+				for finish, ok := iter(); ok; finish, ok = iter() {
+					if wo.Collision(source.Bounds(), finish.Bounds()) {
+						s.level++
+						s.generateNextLevel()
+					}
+				}
+			},
+		),
 	}
 }
 
-func (s *mainScene) createPlatform(x, y, size float64, color color.Color) *wobj.Object {
+func (s *mainScene) createPlatform(x, y, size float64, color color.Color, tag string) *wobj.Object {
 	im := imdraw.New(nil)
 	im.Color = color
 	im.Push(pixel.V(0, 0), pixel.V(size, size))
@@ -141,15 +156,38 @@ func (s *mainScene) createPlatform(x, y, size float64, color color.Color) *wobj.
 		im:     im,
 	}
 	return &wobj.Object{
-		Tag:      tagPlatform,
+		Tag:      tag,
 		Pos:      pixel.V(x, y),
 		Size:     pixel.V(size, size),
 		Drawable: drawable,
 	}
 }
 
-func (s *mainScene) generateLevel() {
-	layers := s.layers
+func (s *mainScene) randomColor() color.Color {
+	return hsv.HSVColor{
+		S: 255,
+		V: 255,
+		H: uint16(s.w.rng.Intn(360)),
+	}
+}
+
+func (s *mainScene) randomColors() [7]color.Color {
+	var c [7]color.Color
+	for i := 0; i < len(c); i++ {
+		c[i] = s.randomColor()
+	}
+	return c
+}
+
+func (s *mainScene) generateNextLevel() {
+
+	platformColors := s.randomColors()
+
+	layers := wobj.NewLayers(numLayers)
+	s.layers = layers
+
+	levelNum := s.level % len(levels)
+	level := levels[levelNum]
 
 	square := math.Sqrt(float64(len(level)))
 	isquare := int(square)
@@ -171,12 +209,10 @@ func (s *mainScene) generateLevel() {
 			case 0:
 			case 1:
 				layers[layerPlayer].Add(s.createPlayer(x, y, size))
-			case 2:
-				layers[layerBackground].Add(s.createPlatform(x, y, size, colornames.Blue))
-			case 3:
-				layers[layerPlatforms].Add(s.createPlatform(x, y, size, colornames.Green))
-			case 4:
-				layers[layerPlatforms].Add(s.createPlatform(x, y, size, colornames.Orange))
+			case 9:
+				layers[layerPlatforms].Add(s.createPlatform(x, y, size, colornames.White, tagFinish))
+			default:
+				layers[layerBackground].Add(s.createPlatform(x, y, size, platformColors[piece-2], tagPlatform))
 			}
 
 		}
@@ -184,21 +220,83 @@ func (s *mainScene) generateLevel() {
 }
 
 var (
-	level = []int{
-		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-		2, 1, 3, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 2,
-		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	levels = [][]int{
+		//{
+		//	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+		//	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		//},
+		{
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 1, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		},
+		{
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 4, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 5, 0, 5, 0, 3, 0, 0, 2,
+			2, 0, 0, 0, 0, 6, 0, 4, 0, 4, 0, 0, 0, 0, 2,
+			2, 0, 5, 0, 0, 5, 0, 3, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		},
+		{
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+			2, 1, 3, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 2,
+			2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		},
+		{
+			2, 2, 2, 2, 2, 2, 2,
+			2, 9, 0, 0, 0, 1, 2,
+			2, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 0, 0, 2,
+			2, 0, 0, 0, 3, 0, 2,
+			2, 0, 0, 0, 3, 0, 2,
+			2, 2, 2, 2, 2, 2, 2,
+		},
 	}
 )
