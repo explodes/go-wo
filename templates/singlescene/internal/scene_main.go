@@ -37,6 +37,10 @@ func (w *World) createMainScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 func (s *mainScene) Update(dt float64, input wo.Input) wo.SceneResult {
 	s.time += dt
 
+	if input.JustPressed(pixelgl.KeyEscape) {
+		return wo.SceneResultWindowClosed
+	}
+
 	s.layers.Update(dt)
 
 	return wo.SceneResultNone
