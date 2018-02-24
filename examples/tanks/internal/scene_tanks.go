@@ -147,7 +147,7 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 	blueTankDrawable.Sheet.SetFrame(0)
 	tank2Drawable.Sheet.SetFrame(1)
 
-	scene := &gameScene{
+	s := &gameScene{
 		w:       w,
 		phase:   phaseCountdown,
 		bounds:  canvas.Bounds(),
@@ -160,7 +160,7 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 
 	rot1 := wo.DegToRad(135)
 	rot2 := wo.DegToRad(-45)
-	if scene.rng.Float64() < 0.5 {
+	if s.rng.Float64() < 0.5 {
 		rot1, rot2 = rot2, rot1
 	}
 
@@ -173,15 +173,15 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		RotNormal: tankRotateOffset,
 
 		Steps: wobj.MakeBehaviors(
-			scene.behaviorBlueRotateOnButton,
+			s.behaviorBlueRotateOnButton,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			wobj.ReflectWithin(scene),
-			scene.behaviorBlueHitsRedBullet,
+			s.reflectInBounds,
+			s.behaviorBlueHitsRedBullet,
 		),
 	}
-	scene.bluePlayer = player1
-	scene.layers[layerTanks].Add(player1)
+	s.bluePlayer = player1
+	s.layers[layerTanks].Add(player1)
 
 	player2 := &wobj.Object{
 		Tag:       tagRedPlayer,
@@ -192,24 +192,49 @@ func (w *World) newGameScene(canvas *pixelgl.Canvas) (wo.Scene, error) {
 		RotNormal: tankRotateOffset,
 
 		Steps: wobj.MakeBehaviors(
-			scene.behaviorRedRotateOnButton,
+			s.behaviorRedRotateOnButton,
 		),
 		PostSteps: wobj.MakeBehaviors(
-			wobj.ReflectWithin(scene),
-			scene.behaviorRedHitsBlueBullet,
+			s.reflectInBounds,
+			s.behaviorRedHitsBlueBullet,
 		),
 	}
-	scene.redPlayer = player2
-	scene.layers[layerTanks].Add(player2)
+	s.redPlayer = player2
+	s.layers[layerTanks].Add(player2)
 
 	dirt := &wobj.Object{
 		Tag:      tagBackground,
 		Size:     canvas.Bounds().Max,
 		Drawable: wobj.NewSpriteDrawable(dirtSprite),
 	}
-	scene.layers[layerBackground].Add(dirt)
+	s.layers[layerBackground].Add(dirt)
 
-	return scene, nil
+	return s, nil
+}
+
+func (s *gameScene) reflectInBounds(source *wobj.Object, dt float64) {
+	objBounds := source.Bounds()
+	boundary := s.bounds
+	switch {
+	case objBounds.Min.X <= boundary.Min.X:
+		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+		source.Rot = source.Velocity.Angle()
+		source.Pos = pixel.V(boundary.Min.X, source.Pos.Y)
+	case objBounds.Max.X >= boundary.Max.X:
+		source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
+		source.Rot = source.Velocity.Angle()
+		source.Pos = pixel.V(boundary.Max.X-source.Size.X, source.Pos.Y)
+	}
+	switch {
+	case objBounds.Min.Y <= boundary.Min.Y:
+		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+		source.Rot = source.Velocity.Angle()
+		source.Pos = pixel.V(source.Pos.X, boundary.Min.Y)
+	case objBounds.Max.Y >= boundary.Max.Y:
+		source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
+		source.Rot = source.Velocity.Angle()
+		source.Pos = pixel.V(source.Pos.X, boundary.Max.Y-source.Size.Y)
+	}
 }
 
 func (s *gameScene) Update(dt float64, input wo.Input) wo.SceneResult {
@@ -374,7 +399,7 @@ func (s *gameScene) behaviorRedHitsBlueBullet(source *wobj.Object, dt float64) {
 		return
 	}
 	sourceBounds := source.Bounds()
-	for bullet := range s.layers[layerBullets].Tagged(tagBlueBullet) {
+	for _, bullet := range s.layers[layerBullets].Tagged(tagBlueBullet).Iterable() {
 		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.blueScore++
 			s.phase = phaseBlueVictory
@@ -388,7 +413,7 @@ func (s *gameScene) behaviorBlueHitsRedBullet(source *wobj.Object, dt float64) {
 		return
 	}
 	sourceBounds := source.Bounds()
-	for bullet := range s.layers[layerBullets].Tagged(tagRedBullet) {
+	for _, bullet := range s.layers[layerBullets].Tagged(tagRedBullet).Iterable() {
 		if wo.Collision(sourceBounds, bullet.Bounds()) {
 			s.w.redScore++
 			s.phase = phaseRedVictory

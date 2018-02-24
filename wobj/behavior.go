@@ -1,10 +1,5 @@
 package wobj
 
-import (
-	"github.com/explodes/go-wo"
-	"github.com/faiface/pixel"
-)
-
 // Behavior is what happens when an object meets a condition for a given time delta
 type Behavior func(source *Object, dt float64)
 
@@ -29,27 +24,6 @@ func (b Behaviors) Execute(source *Object, dt float64) {
 	}
 }
 
-// Collision is a behavior that executes when an Object's
-// Bounds intersects with a Bounder's Bounds
-func Collision(with Bounder, then Behavior) Behavior {
-	return func(source *Object, dt float64) {
-		if wo.Collision(source.Bounds(), with.Bounds()) {
-			then(source, dt)
-		}
-	}
-}
-
-// ObjectCollision is a behavior that executes when an
-// Object's Bounds intersects
-// with another Object's Bounds
-func ObjectCollision(with *Object, reaction Reaction) Behavior {
-	return func(source *Object, dt float64) {
-		if wo.Collision(source.Bounds(), with.Bounds()) {
-			reaction(source, with, dt)
-		}
-	}
-}
-
 // Movement is a Behavior that will move a source an object
 // by its velocity scaled by time delta
 var Movement = Behavior(func(source *Object, dt float64) {
@@ -61,34 +35,4 @@ var Movement = Behavior(func(source *Object, dt float64) {
 // Rot (rotation) to face the same angle as its Velocity.
 func FaceDirection(source *Object, dt float64) {
 	source.Rot = source.Velocity.Angle()
-}
-
-// ReflectWithin creates a Behavior that will reflect the object
-// with confined bounds. The source object will always be placed
-// within the bounder's Bounds.
-func ReflectWithin(bounder Bounder) Behavior {
-	return func(source *Object, dt float64) {
-		objBounds := source.Bounds()
-		boundary := bounder.Bounds()
-		switch {
-		case objBounds.Min.X <= boundary.Min.X:
-			source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-			source.Rot = source.Velocity.Angle()
-			source.Pos = pixel.V(boundary.Min.X, source.Pos.Y)
-		case objBounds.Max.X >= boundary.Max.X:
-			source.Velocity = pixel.V(-source.Velocity.X, source.Velocity.Y)
-			source.Rot = source.Velocity.Angle()
-			source.Pos = pixel.V(boundary.Max.X-source.Size.X, source.Pos.Y)
-		}
-		switch {
-		case objBounds.Min.Y <= boundary.Min.Y:
-			source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-			source.Rot = source.Velocity.Angle()
-			source.Pos = pixel.V(source.Pos.X, boundary.Min.Y)
-		case objBounds.Max.Y >= boundary.Max.Y:
-			source.Velocity = pixel.V(source.Velocity.X, -source.Velocity.Y)
-			source.Rot = source.Velocity.Angle()
-			source.Pos = pixel.V(source.Pos.X, boundary.Max.Y-source.Size.Y)
-		}
-	}
 }

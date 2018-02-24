@@ -3,8 +3,6 @@ package internal
 import (
 	"math"
 
-	"fmt"
-
 	"image/color"
 
 	"github.com/explodes/go-wo"
@@ -100,7 +98,7 @@ func (s *mainScene) createPlayer(x, y, size float64) *wobj.Object {
 				// check collisions against each platform
 				bounds := player.Bounds()
 				for _, layer := range s.layers {
-					for platform := range layer.Tagged(tagPlatform) {
+					for _, platform := range layer.Tagged(tagPlatform).Iterable() {
 						platformBounds := platform.Bounds()
 						if bounds.Max.X <= platformBounds.Min.X || bounds.Min.X >= platformBounds.Max.X {
 							continue
@@ -168,7 +166,6 @@ func (s *mainScene) generateLevel() {
 			y := height - float64(j)*size - size
 
 			index := i + j*isquare
-			fmt.Println(index)
 			piece := level[index]
 
 			switch piece {

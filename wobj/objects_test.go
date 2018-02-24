@@ -24,14 +24,13 @@ func TestLayers_Draw(t *testing.T) {
 
 func TestLayers_Draw_no_drawable(t *testing.T) {
 	testObj := newTestObject("tag")
-	oldDrawable := testObj.drawable
-	testObj.drawable = nil
+	testObj.obj.Drawable = nil
 	layers := NewLayers(1)
 	layers[0].Add(testObj.obj)
 
 	layers.Draw(testTarget{})
 
-	assert.Equal(t, 1, oldDrawable.drawCount)
+	assert.Equal(t, 0, testObj.drawable.drawCount)
 }
 
 func TestLayers_Update(t *testing.T) {
@@ -115,11 +114,29 @@ func TestObjects_Contains(t *testing.T) {
 
 func TestObjectSet_Contains(t *testing.T) {
 	testObj := newTestObject("tag")
-	set := make(ObjectSet)
+	set := NewObjectSet()
 
 	assert.False(t, set.Contains(testObj.obj))
 
 	set.add(testObj.obj)
 
 	assert.True(t, set.Contains(testObj.obj))
+}
+
+func TestObjectSet_Iterable_nil(t *testing.T) {
+	var set *ObjectSet = nil
+
+	assert.Len(t, set.Iterable(), 0)
+}
+
+func TestObjectSet_Size_nil(t *testing.T) {
+	var set *ObjectSet = nil
+
+	assert.Equal(t, 0, set.Size())
+}
+
+func TestObjectSet_Contains_nil(t *testing.T) {
+	var set *ObjectSet = nil
+
+	assert.False(t, set.Contains(nil))
 }
