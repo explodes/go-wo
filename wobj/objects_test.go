@@ -168,21 +168,50 @@ func TestLayers_Iterator_skipLayer(t *testing.T) {
 	layers := NewLayers(3)
 	layers[0].Add(newTestObject("a").obj)
 	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
 
 	iter := layers.Iterator()
 	iterSize := countIterator(iter)
 
-	assert.Equal(t, 2, iterSize)
+	assert.Equal(t, 3, iterSize)
+}
+
+func TestLayers_TagIterator_skipLayer(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
+
+	iter := layers.TagIterator("c")
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 1, iterSize)
 }
 
 func TestLayers_TagIterator(t *testing.T) {
 	layers := NewLayers(3)
 	layers[0].Add(newTestObject("a").obj)
 	layers[1].Add(newTestObject("b").obj)
+	layers[1].Add(newTestObject("d").obj)
 	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
 
 	iter := layers.TagIterator("b")
 	iterSize := countIterator(iter)
 
 	assert.Equal(t, 2, iterSize)
+}
+
+func TestLayers_TagIterator_multipleTags(t *testing.T) {
+	layers := NewLayers(3)
+	layers[0].Add(newTestObject("a").obj)
+	layers[1].Add(newTestObject("b").obj)
+	layers[1].Add(newTestObject("d").obj)
+	layers[2].Add(newTestObject("b").obj)
+	layers[2].Add(newTestObject("c").obj)
+
+	iter := layers.TagIterator("a", "b")
+	iterSize := countIterator(iter)
+
+	assert.Equal(t, 3, iterSize)
 }

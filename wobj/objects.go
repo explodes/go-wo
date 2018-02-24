@@ -52,11 +52,18 @@ func (ly Layers) Iterator() ObjectIterator {
 }
 
 // Iterator returns an ObjectIterator for all objects
-// with a given tag in all layers
-func (ly Layers) TagIterator(tag string) ObjectIterator {
-	iters := make([]ObjectIterator, len(ly))
-	for index, layer := range ly {
-		iters[index] = layer.Tagged(tag).Iterator()
+// with the given tags in all layers
+func (ly Layers) TagIterator(tags ...string) ObjectIterator {
+	if len(tags) == 0 {
+		return emptyObjectIterator
+	}
+	iters := make([]ObjectIterator, len(ly)*len(tags))
+	index := 0
+	for _, tag := range tags {
+		for _, layer := range ly {
+			iters[index] = layer.Tagged(tag).Iterator()
+			index++
+		}
 	}
 	return chainIterators(iters)
 }
