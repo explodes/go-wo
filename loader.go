@@ -159,5 +159,8 @@ func (load *simpleLoader) FontFace(name string, size float64) (font.Face, error)
 	if err != nil {
 		return nil, err
 	}
-	return truetype.NewFace(f, &truetype.Options{Size: size}), nil
+	return truetype.NewFace(f, &truetype.Options{
+		Size:              size,
+		GlyphCacheEntries: 1,
+	}), nil
 }
